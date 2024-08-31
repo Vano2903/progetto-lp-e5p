@@ -1,8 +1,9 @@
 ;; -*- Mode: Lisp -*-
 
 ;; Gianfarelli	Giorgio	894499
-;; Lauria	Luca	
+;; Lauria	Luca	900326
 ;; Vanoncini	Davide	903214
+
 
 ;; Interval Arithmetic
 ;; This file contains the implementation of the interval arithmetic operations
