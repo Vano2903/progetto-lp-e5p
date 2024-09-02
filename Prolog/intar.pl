@@ -4,8 +4,124 @@
 % Lauria	Luca	900326
 % Vanoncini	Davide	903214
 
+% definizione di reale esteso.
+extended_real(pos_infinity).
+extended_real(neg_infinity).
+extended_real(X) :- 
+    number(X).
+
+% logica aritmetica.
+extended_real_sum(pos_infinity, neg_infinity, _) :- 
+    !, fail.
+extended_real_sum(neg_infinity, pos_infinity, _) :-
+    !, fail.
+extended_real_sum(pos_infinity, _, pos_infinity):- !.
+extended_real_sum(_, pos_infinity, pos_infinity):- !.
+extended_real_sum(neg_infinity, _, neg_infinity):- !.
+extended_real_sum(_, neg_infinity, neg_infinity):- !.
+extended_real_sum(X, Y, Result) :- 
+    number(X), 
+    number(Y), 
+    Result is X + Y.
+
+extended_real_subtraction(neg_infinity, neg_infinity, _) :- 
+    !, fail.  
+extended_real_subtraction(pos_infinity, pos_infinity, _) :-
+    !, fail.  
+extended_real_subtraction(pos_infinity, _, pos_infinity):- !.
+extended_real_subtraction(neg_infinity, _, neg_infinity):- !.
+extended_real_subtraction(_, pos_infinity, neg_infinity):- !.
+extended_real_subtraction(_, neg_infinity, pos_infinity):- !.
+extended_real_subtraction(X, Y, Result) :- 
+    number(X), 
+    number(Y),
+    Result is X - Y.
+
+extended_real_multiplication(pos_infinity, 0, _) :- 
+    !, fail.
+extended_real_multiplication(0, pos_infinity, _) :-
+    !, fail.
+extended_real_multiplication(neg_infinity, 0, _) :-
+    !, fail.
+extended_real_multiplication(0, neg_infinity, _) :-
+    !, fail.
+extended_real_multiplication(pos_infinity, neg_infinity, neg_infinity) :- !.
+extended_real_multiplication(neg_infinity, pos_infinity, neg_infinity) :- !.
+extended_real_multiplication(pos_infinity, pos_infinity, pos_infinity) :- !.
+extended_real_multiplication(neg_infinity, neg_infinity, pos_infinity) :- !.
+extended_real_multiplication(X, Y, Result) :- 
+    number(X), 
+    number(Y), 
+    Result is X * Y.
+
+extended_real_division(_, 0, _) :-
+    !, fail.
+extended_real_division(0, _, 0):- !.
+extended_real_division(neg_infinity, neg_infinity, _) :-
+    !, fail.
+extended_real_division(neg_infinity, pos_infinity, _) :-
+    !, fail.
+extended_real_division(pos_infinity, pos_infinity, _) :-
+    !, fail.
+extended_real_division(pos_infinity, neg_infinity, _) :-
+    !, fail.
+extended_real_division(pos_infinity, X, Result) :-
+    number(X),
+    X < 0,
+    Result = neg_infinity, !.
+extended_real_division(pos_infinity, X, Result) :-
+    number(X),
+    X > 0,
+    Result = pos_infinity, !.
+extended_real_division(neg_infinity, X, Result) :-
+    number(X),
+    X < 0,
+    Result = pos_infinity, !.
+extended_real_division(neg_infinity, X, Result) :-
+    number(X),
+    X > 0,
+    Result = neg_infinity, !.
+extended_real_division(X, pos_infinity, 0) :- 
+    number(X), !.
+extended_real_division(X, neg_infinity, 0) :- 
+    number(X), !.
+extended_real_division(X, Y, Result) :-
+    number(X),
+    number(Y),
+    Result is X / Y.
+
+minus_reciprocal(pos_infinity, _) :-
+    !, fail.
+minus_reciprocal(neg_infinity, _) :-
+    !, fail.
+minus_reciprocal(X, Result) :- 
+    number(X), 
+    Result is - X.
+
+div_reciprocal(pos_infinity, _) :-
+    !, fail.
+div_reciprocal(neg_infinity, _) :-
+    !, fail.
+div_reciprocal(0, _) :-
+    !, fail.
+div_reciprocal(X, Result) :-
+    number(X),
+    Result is 1 / X.
+
+% fine logica aritmetica.
+
+
+
+% predicati aritmetici.
+
+/* The plus e/1 predicate is true with the unit of the summation operation.
+The plus e/2 predicate is true when Result is an extended real that unifies with X. X must be
+instantiated and must be an extended real. Otherwise the predicate fails.
+The plus e/3 predicate is true when Result is the extended real sum of X and Y, which must
+both be instantiated extended reals. Otherwise the predicate fails.
+*/
 plus_e(0).
-plus_e(X, Result) :- 
+plus_e(X, Result) :- % in che senso X deve essere istanziato?
     extended_real(X),
     Result = X, !.
 plus_e(_, _) :- 
@@ -17,59 +133,63 @@ plus_e(X, Y, Result) :-
 plus_e(_, _, _) :-
     fail.
 
-extended_real(X) :- 
-    number(X).
-extended_real(pos_infinity).
-extended_real(neg_infinity).
 
-extended_real_sum(pos_infinity, _, pos_infinity).
-extended_real_sum(_, pos_infinity, pos_infinity).
-extended_real_sum(neg_infinity, _, neg_infinity).
-extended_real_sum(_, neg_infinity, neg_infinity).   
-extended_real_sum(pos_infinity, neg_infinity, _) :- 
-    fail.   % per qualche ragione non fallisce ma da X = pos_infinity.
-extended_real_sum(neg_infinity, pos_infinity, _) :-
-    fail.   % per qualche ragione non fallisce ma da X = pos_infinity.
-
-extended_real_sum(X, Y, Result) :- 
-    number(X), 
-    number(Y), 
-    Result is X + Y.
-/* The plus e/1 predicate is true with the unit of the summation operation.
-The plus e/2 predicate is true when Result is an extended real that unifies with X. X must be
-instantiated and must be an extended real. Otherwise the predicate fails.
-The plus e/3 predicate is true when Result is the extended real sum of X and Y, which must
-both be instantiated extended reals. Otherwise the predicate fails.
-*/
-
-minus_e(X, Result)
-minus_e(X, Y, Result)
 /* The minus e/2 predicate is true when Result is an extended real that is the reciprocal of X with
 respect to summation. X must be instantiated and must be an extended real. Otherwise the
 predicate fails.
 The minus e/3 predicate is true when Result is the extended real subtraction of Y from X, which
 must both be instantiated extended reals. Otherwise the predicate fails.
 */
+minus_e(X, Result) :- 
+    extended_real(X),
+    minus_reciprocal(X, Result), !.
+minus_e(_, _) :- 
+    fail.
+minus_e(X, Y, Result) :-
+    extended_real(X),
+    extended_real(Y),
+    extended_real_subtraction(X, Y, Result), !.
+minus_e(_, _, _) :-
+    fail.
 
-times_e(1)
-times_e(X, Result)
-times_e(X, Y, Result)
 /* The times e/1 predicate is true with the unit of the summation operation.
 The times e/2 predicate is true when Result is an extended real that unifies with X. X must be
 instantiated and must be an extended real. Otherwise the predicate fails.
 The times e/3 predicate is true when Result is the extended real multiplication of X and Y,
 which must both be instantiated extended reals. Otherwise the predicate fails.
 */
+times_e(1).
+times_e(X, Result):- 
+    extended_real(X),
+    Result = X, !.
+times_e(_, _) :-
+    fail.
+times_e(X, Y, Result) :- 
+    extended_real(X), 
+    extended_real(Y),
+    extended_real_multiplication(X, Y, Result), !.
+times_e(_, _, _) :-
+    fail.
 
-div_e(X, Result)
-div_e(X, Y, Result)
 /* The div e/2 predicate is true when Result is an extended real that is the reciprocal of X with
 respect to multiplication. X must be instantiated and must be an extended real. Otherwise the
 predicate fails.
 The div e/3 predicate is true when Result is the extended real subtraction of Y from X, which
 must both be instantiated extended reals. Otherwise the predicate fails.
 */
+div_e(X, Result) :- 
+    extended_real(X),
+    div_reciprocal(X, Result), !.
+div_e(_, _) :-
+    fail.
+div_e(X, Y, Result) :-
+    extended_real(X),
+    extended_real(Y),
+    extended_real_division(X, Y, Result), !.
+div_e(_, _, _) :-
+    fail.
 
+% fine predicati aritmetici.
 
 
 /* Interval Construction and Other Predicates. The following predicates are the basis for
