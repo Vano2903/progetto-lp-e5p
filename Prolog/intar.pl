@@ -7,16 +7,15 @@
 % definizione di reale esteso.
 
 % extended_real(infinity).
+extended_real(nil).         
 extended_real(pos_infinity).
 extended_real(neg_infinity).
 extended_real(X) :- 
     number(X).
 
 % logica aritmetica.
-extended_real_sum(pos_infinity, neg_infinity, _) :- 
-    !, fail.
-extended_real_sum(neg_infinity, pos_infinity, _) :-
-    !, fail.
+extended_real_sum(pos_infinity, neg_infinity, nil) :- !.
+extended_real_sum(neg_infinity, pos_infinity, nil) :- !.
 extended_real_sum(pos_infinity, _, pos_infinity):- !.
 extended_real_sum(_, pos_infinity, pos_infinity):- !.
 extended_real_sum(neg_infinity, _, neg_infinity):- !.
@@ -24,12 +23,12 @@ extended_real_sum(_, neg_infinity, neg_infinity):- !.
 extended_real_sum(X, Y, Result) :- 
     number(X), 
     number(Y), 
-    Result is X + Y.
+    Result is X + Y, !.
+% extended_real_sum(_, _, _) :- 
+%    !, fail.
 
-extended_real_subtraction(neg_infinity, neg_infinity, _) :- 
-    !, fail.  
-extended_real_subtraction(pos_infinity, pos_infinity, _) :-
-    !, fail.  
+extended_real_subtraction(neg_infinity, neg_infinity, nil) :- !. 
+extended_real_subtraction(pos_infinity, pos_infinity, nil) :-!.
 extended_real_subtraction(pos_infinity, _, pos_infinity):- !.
 extended_real_subtraction(neg_infinity, _, neg_infinity):- !.
 extended_real_subtraction(_, pos_infinity, neg_infinity):- !.
@@ -39,14 +38,10 @@ extended_real_subtraction(X, Y, Result) :-
     number(Y),
     Result is X - Y.
 
-extended_real_multiplication(pos_infinity, 0, _) :- 
-    !, fail.
-extended_real_multiplication(0, pos_infinity, _) :-
-    !, fail.
-extended_real_multiplication(neg_infinity, 0, _) :-
-    !, fail.
-extended_real_multiplication(0, neg_infinity, _) :-
-    !, fail.
+extended_real_multiplication(pos_infinity, 0, nil) :- !.
+extended_real_multiplication(0, pos_infinity, nil) :- !.
+extended_real_multiplication(neg_infinity, 0, nil) :- !.
+extended_real_multiplication(0, neg_infinity, nil) :- !.
 extended_real_multiplication(pos_infinity, neg_infinity, neg_infinity) :- !.
 extended_real_multiplication(neg_infinity, pos_infinity, neg_infinity) :- !.
 extended_real_multiplication(pos_infinity, pos_infinity, pos_infinity) :- !.
@@ -56,17 +51,12 @@ extended_real_multiplication(X, Y, Result) :-
     number(Y), 
     Result is X * Y.
 
-extended_real_division(_, 0, _) :-
-    !, fail.
+extended_real_division(_, 0, nil) :- !.
 extended_real_division(0, _, 0):- !.
-extended_real_division(neg_infinity, neg_infinity, _) :-
-    !, fail.
-extended_real_division(neg_infinity, pos_infinity, _) :-
-    !, fail.
-extended_real_division(pos_infinity, pos_infinity, _) :-
-    !, fail.
-extended_real_division(pos_infinity, neg_infinity, _) :-
-    !, fail.
+extended_real_division(neg_infinity, neg_infinity, nil) :- !.
+extended_real_division(neg_infinity, pos_infinity, nil) :- !.
+extended_real_division(pos_infinity, pos_infinity, nil) :- !.
+extended_real_division(pos_infinity, neg_infinity, nil) :- !.
 extended_real_division(pos_infinity, X, Result) :-
     number(X),
     X < 0,
@@ -92,20 +82,15 @@ extended_real_division(X, Y, Result) :-
     number(Y),
     Result is X / Y.
 
-minus_reciprocal(pos_infinity, _) :-
-    !, fail.
-minus_reciprocal(neg_infinity, _) :-
-    !, fail.
+minus_reciprocal(pos_infinity, nil) :- !.
+minus_reciprocal(neg_infinity, nil) :- !.
 minus_reciprocal(X, Result) :- 
     number(X), 
     Result is - X.
 
-div_reciprocal(pos_infinity, _) :-
-    !, fail.
-div_reciprocal(neg_infinity, _) :-
-    !, fail.
-div_reciprocal(0, _) :-
-    !, fail.
+div_reciprocal(pos_infinity, nil) :- !.
+div_reciprocal(neg_infinity, nil) :- !.
+div_reciprocal(0, nil) :- !.
 div_reciprocal(X, Result) :-
     number(X),
     Result is 1 / X.
@@ -123,15 +108,20 @@ The plus e/3 predicate is true when Result is the extended real sum of X and Y, 
 both be instantiated extended reals. Otherwise the predicate fails.
 */
 plus_e(0).
-plus_e(X, Result) :- % in che senso X deve essere istanziato?
+plus_e(X, Result) :- 
+    nonvar(X),
     extended_real(X),
-    Result = X, !.
+    Result = X,
+    extended_real(Result), !. % non servirebbe controllare se Result è un extended real dato che è già controllato per X.
 plus_e(_, _) :- 
     fail. 
 plus_e(X, Y, Result) :- 
+    nonvar(X),
+    nonvar(Y),
     extended_real(X), 
     extended_real(Y),
-    extended_real_sum(X, Y, Result), !.
+    extended_real_sum(X, Y, Result),
+    extended_real(Result), !.
 plus_e(_, _, _) :-
     fail.
 
@@ -143,14 +133,19 @@ The minus e/3 predicate is true when Result is the extended real subtraction of 
 must both be instantiated extended reals. Otherwise the predicate fails.
 */
 minus_e(X, Result) :- 
+    nonvar(X),
     extended_real(X),
-    minus_reciprocal(X, Result), !.
+    minus_reciprocal(X, Result),
+    extended_real(Result), !.
 minus_e(_, _) :- 
     fail.
 minus_e(X, Y, Result) :-
+    nonvar(X),
+    nonvar(Y),
     extended_real(X),
     extended_real(Y),
-    extended_real_subtraction(X, Y, Result), !.
+    extended_real_subtraction(X, Y, Result),
+    extended_real(Result), !.
 minus_e(_, _, _) :-
     fail.
 
@@ -162,14 +157,19 @@ which must both be instantiated extended reals. Otherwise the predicate fails.
 */
 times_e(1).
 times_e(X, Result):- 
+    nonvar(X),
     extended_real(X),
-    Result = X, !.
+    Result = X,
+    extended_real(Result), !.
 times_e(_, _) :-
     fail.
 times_e(X, Y, Result) :- 
+    nonvar(X),
+    nonvar(Y),
     extended_real(X), 
     extended_real(Y),
-    extended_real_multiplication(X, Y, Result), !.
+    extended_real_multiplication(X, Y, Result), 
+    extended_real(Result), !.
 times_e(_, _, _) :-
     fail.
 
@@ -180,18 +180,24 @@ The div e/3 predicate is true when Result is the extended real subtraction of Y 
 must both be instantiated extended reals. Otherwise the predicate fails.
 */
 div_e(X, Result) :- 
+    nonvar(X),
     extended_real(X),
-    div_reciprocal(X, Result), !.
+    div_reciprocal(X, Result), 
+    extended_real(Result), !.
 div_e(_, _) :-
     fail.
 div_e(X, Y, Result) :-
+    nonvar(X),
+    nonvar(Y),
     extended_real(X),
     extended_real(Y),
-    extended_real_division(X, Y, Result), !.
+    extended_real_division(X, Y, Result),
+    extended_real(Result), !.
 div_e(_, _, _) :-
     fail.
 
 % fine predicati aritmetici.
+
 
 
 /* Interval Construction and Other Predicates. The following predicates are the basis for
@@ -255,17 +261,29 @@ that I can be the empty interval if L > H.
 is_interval([]).
 is_interval([pos_infinity, neg_infinity]) :-
     !. 
+
+
+
 is_interval([L, H]) :- 
-    extended_real(L),
+    extended_real(L),    %%% !!! se provi a chiamare is_interval([neg_infiniry, _]) ti da un errore
     extended_real(H),
     L =< H,
     !.
+ 
+
+
  
 /* The predicate is interval/1 is true if I is a term representing an interval (including the empty
 interval).
 */
 
-whole_interval([neg_infinity, pos_infinity]).
+
+
+
+whole_interval([neg_infinity, pos_infinity]).  %%% in questo modo inserendo una variabile unifica con [neg_infinity, pos_infinity]... non so se è corretto.
+
+
+
 
 % The predicate whole interval/1 is true if R is a term representing the whole interval R.
 
