@@ -18,8 +18,8 @@ extended_real(X) :-
 extended_real_sum(pos_infinity, neg_infinity, nil) :- !.
 extended_real_sum(neg_infinity, pos_infinity, nil) :- !.
 extended_real_sum(pos_infinity, _, pos_infinity):- !.
-extended_real_sum(_, pos_infinity, pos_infinity):- !.
 extended_real_sum(neg_infinity, _, neg_infinity):- !.
+extended_real_sum(_, pos_infinity, pos_infinity):- !.
 extended_real_sum(_, neg_infinity, neg_infinity):- !.
 extended_real_sum(X, Y, Result) :- 
     extended_real(X), 
@@ -264,7 +264,7 @@ interval(pos_infinity, SI) :-
     var(pos_infinity),
     SI = [pos_infinity, pos_infinity],
     !.
-interval(X, SI) :- 
+interval(X, SI) :- %trasformazione da numero a intervallo singleton
     nonvar(X),
     extended_real(X),
     SI = [X, X],
@@ -316,8 +316,11 @@ is_interval([_, Y]) :-          % in questo modo se X/Y è una variabile fallisc
     var(Y),
     !, fail.
 is_interval([]) :- !.
-is_interval([neg_infinity, neg_infinity]) :- !.
-is_interval([pos_infinity, pos_infinity]) :- !.
+is_interval([neg_positivity, pos_infinity]) :- !.
+is_interval([neg_infinity, neg_infinity]) :- !, fail.
+is_interval([pos_infinity, pos_infinity]) :- !, fail.
+is_interval([pos_infinity, _]) :- !, fail.
+is_interval([_, neg_infinity]) :- !, fail.
 is_interval([neg_infinity, pos_infinity]) :- !.
 is_interval([neg_infinity, H]) :- 
     extended_real(H),
@@ -325,7 +328,6 @@ is_interval([neg_infinity, H]) :-
 is_interval([L, pos_infinity]) :-
     extended_real(L),
     !.
-
 is_interval([L, H]) :- 
     extended_real(L),
     extended_real(H),
@@ -371,18 +373,16 @@ icontains([], _) :-
 icontains(I, _) :-
 \+ is_interval(I),          % se I non è un intervallo, fallisce (probabilmente è meglio mettere is_interval([_, _]) su ogni predicato).
     !, fail.
+icontains(I, []) :-   % empty inteval fail
+    !, fail.
 icontains(I, I) :-
-    is_interval(I), !.
-icontains(I, []) :- 
     is_interval(I), !.
 icontains(I, X) :-
     extended_real(X),   
     is_singleton(I),    % gestisce il caso in cui I è un singleton, anche con +-inf.
     iinf(I, X),
     !.
-    
 icontains([neg_infinity, pos_infinity], X) :- 
-    % is_interval([neg_infinity, pos_infinity]),
     extended_real(X), !.
 icontains([neg_infinity, pos_infinity], I) :- 
     is_interval(I), !.
@@ -392,12 +392,10 @@ icontains([neg_infinity, H], neg_infinity) :-
     extended_real(H), !.           
 icontains([L, pos_infinity], pos_infinity) :- 
     extended_real(L), !.           
-icontains([neg_infinity, H], [neg_infinity, neg_infinity]) :- 
+icontains([neg_infinity, H], [neg_infinity, neg_infinity]) :- %%non è un intervallo quindi fail?
     extended_real(H), !.
-icontains([L, pos_infinity], [pos_infinity, pos_infinity]) :- 
+icontains([L, pos_infinity], [pos_infinity, pos_infinity]) :- %% non è intervallo quindi fail
     extended_real(L), !.
-
-
 icontains([neg_infinity, H], X) :-
     number(X),
     number(H),      % H deve essere un numero
@@ -407,7 +405,7 @@ icontains([neg_infinity, H], I2) :-
     is_interval(I2),
     number(H),  
     isup(I2, H2),
-    number(H2),     % isup non può essere +- inf
+    number(H2),     % isup non può essere +- inf    
     H >= H2, !.
 
 icontains([L, pos_infinity], X) :-
@@ -447,45 +445,56 @@ icontains(I, I2) :-
     % H1 >= L2,         % me lo mette copilot ma non ha senso verificarlo.
     H1 >= H2, !.
 
-/* icontains([neg_infinity, H], X) :-  
-    extended_real(H), 
-    ( extended_real(X) ->
-        X =< H
-    ; is_interval(X) ->    
-        iinf(X, L2),
-         H >= L2 ), !.
-
-icontains([L, pos_infinity], X) :-  
-    extended_real(L), 
-    ( extended_real(X) ->
-        X >= L
-    ; is_interval(X) ->    
-        isup(X, H2),
-        L =< H2 ), !.
-icontains([L1, H1], X) :-  
-    is_interval([L1, H1]),
-    ( extended_real(X) ->
-        X >= L1,
-        X =< H1
-    ; is_interval(X) ->
-        
-        iinf(X, L2), 
-        isup(X, H2),
-        L1 =< L2,
-        H1 >= L2,
-        H1 >= H2 ), !.
-
-
-%% dal forum (-inf, n1) e (-inf, n2) n1<n2 
+%% dal forum (-inf, n1) e (-inf, n2) n1<n2 true
 
 
 /* The predicate ioverlap succeeds if the two intervals I1 and I2 “overlap”. The predicate fails
 if either I1 or I2 is not an interval.
 */ 
+% fail cases
+ioverlap([neg_infinity, neg_infinity], _) :- !, fail.
+ioverlap([pos_infinity, pos_infinity], _) :- !, fail.
+ioverlap([pos_infinity, neg_infinity], _) :- !, fail.
+ioverlap(_, [neg_infinity, neg_infinity]) :- !, fail.
+ioverlap(_, [pos_infinity, pos_infinity]) :- !, fail.
+ioverlap(_, [pos_infinity, neg_infinity]) :- !, fail.
+
+% both interval infinity
+
+% whole interval always overlap
+ioverlap(I1, [neg_infinity, pos_infinity]) :- is_interval(I1), !.
+ioverlap([neg_infinity, pos_infinity], I2) :- is_interval(I2), !.
+
+% I1 finito I2 infinito
+ioverlap(I1, [neg_infinity, H2]) :-
+    is_interval(I1), 
+    iinf(I1, L1),
+    L1 =< H2,
+    !.
+ioverlap(I1, [L2, pos_infinity]) :-
+    is_interval(I1), 
+    isup(I1, H1),
+    H1 >= L2,
+    !.
+% I1 infinito I2 intervallo finito
+ioverlap([neg_infinity, H1], I2) :- 
+    is_interval(I2), 
+    iinf(I2, L2),
+    H1 >= L2,
+    !.
+ioverlap([L1, pos_infinity], I2) :- 
+    is_interval(I2), 
+    isup(I2, H2),
+    L1 =< H2,
+    !.
+    
+
+
+%% intervalli finiti
 ioverlap(I1, I2) :-
     is_interval(I1),
     is_interval(I2),
-    iinf(I1, L1),               % fatto da copilot, non ancora verificato o ragionato.
+    iinf(I1, L1),               
     isup(I1, H1),
     iinf(I2, L2),
     isup(I2, H2),
@@ -498,12 +507,49 @@ ioverlap(I1, I2) :-
 operations.
 */
 
-iplus(ZI) :- empty_interval(ZI), !, fail.
-iplus(X, R).
-iplus(X, Y, R).
-/* The predicate iplus/1 is true if ZI is a non empty interval.
+iplus([]) :- !, fail.
+iplus([neg_positivity, pos_infinity]) :- is_interval([neg_positivity, pos_infinity]), !.
+iplus([neg_infinity, neg_infinity]) :- is_interval([neg_infinity, neg_infinity]), !, fail.
+iplus([pos_infinity, pos_infinity]) :- is_interval([pos_infinity, pos_infinity]), !, fail.
+iplus([pos_infinity, _]) :- is_interval([pos_infinity, _]), !, fail.
+iplus([_, neg_infinity]) :- is_interval([_, neg_infinity]), !, fail.
+iplus([neg_infinity, pos_infinity]) :- is_interval([neg_infinity, pos_infinity]), !.
+iplus([neg_infinity, H]) :- is_interval([neg_infinity, H]), !.
+iplus([L, pos_infinity]) :- is_interval([L, pos_infinity]), !.
+iplus(ZI) :- is_interval(ZI), !. %devo verificare che sia effettivamente un intervallo
+%% The predicate iplus/1 is true if ZI is a non empty interval. 
+
+iplus(X, R) :- 
+    nonvar(X), %istantiatied
+    iplus(X), %no empty interval verifica anche che è un intervallo
+    R = X,
+    !.
+iplus(X, R) :-
+    nonvar(X),
+    extended_real(X),
+    is_singleton(R),
+    iinf(R, L1),
+    X = L1.
+iplus(_, _) :- fail.
+/*
 The predicate iplus/2 is true if X is an instantiated non empty interval and R unifies with it,
 or if X is an instantiated extended real and R is a singleton interval containing only X.
+*/
+iplus([L1, H1], [L2, H2], [Result1, Result2]) :- %somma intervalli finiti
+    iplus([L1, H1]), %no [], verifica pure se sono extended real
+    iplus([L2, H2]),
+    extended_real_sum(L1, L2, Result1),
+    extended_real_sum(H1, H2, Result2),
+    !.
+iplus(X, [L2, H2], [Result1, Result2]) :- %somma intervalli finiti
+    number(X),
+    iplus([X, X], [L2, H2], R),
+    !.
+iplus([L1, H1], Y, [Result1, Result2]) :- %somma intervalli finiti
+    number(Y),
+    iplus([L1, H1], [Y, Y], [Result1, Result2]),
+    !.
+/* 
 The predicate iplus/3 is true if X and Y are instantiated non empty intervals and R is the
 interval constructed according to the summation table for two non empty intervals. If either X
 or Y are instantiated extended reals, they are first transformed into singleton intervals.
