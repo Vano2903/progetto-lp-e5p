@@ -256,6 +256,34 @@ div_reciprocal(X, Result) :-
     extended_real(X),
     Result is 1 / X.
 
+/*extended_real_min_List(neg_infinity, _, _ , _, Min):- 
+    Min = neg_infinity,
+    !.
+extended_real_min_List(_, neg_infinity, _ , _, Min):- 
+    Min = neg_infinity,
+    !.
+extended_real_min_List(_, _, neg_infinity, _, Min):- 
+    Min = neg_infinity,
+    !.
+extended_real_min_List(_, _, _, neg_infinity, Min):- 
+    Min = neg_infinity,
+    !.*/
+
+%dovrei sistemare ma ho sonno ciao
+extended_real_min_List([X], X):- !. 
+extended_real_min_List([neg_infinity | Xs], Min) :- 
+    Min is neg_infinity,
+    !.
+%%extended_real_min_List(_, neg_infinity):- !.
+extended_real_min_List([pos_infinity | Xs], Min) :- 
+    extended_real_min_List(Xs, MinRest),
+    Min is MinRest,
+    !.
+extended_real_min_List([X | Xs], Min) :- 
+    extended_real_min_List(Xs, MinRest),
+    Min is min(X, MinRest),
+    !.
+
 % fine logica aritmetica.
 
 
@@ -830,7 +858,23 @@ iplus([L1, H1], Y, [Result1, Result2]) :- % somma intervalli finiti
 /* The predicate iminus/2 is true if X is an instantiated non empty interval and R unifies with
 its reciprocal with respect to the summation operation. If X is an extended real then it is first
 transformed into a singleton interval. */
-iminus(X, R).
+
+iminus(X, _) :- %not instantiated
+    var(X),
+    !, fail.
+
+iminus(X, R) :- %extended real
+    extended_real(X),
+    interval(X, SI),
+    iminus(SI, R),
+    !.
+
+iminus([L1, H1], R) :- 
+    iplus([L1, H1]), % verifica non empty interval.
+    L2 is -L1,  %dovrei fare minus_reciprocal???
+    H2 is -H1,
+    R = [H2, L2], 
+    !.
 
 
 /* The predicate iminus/3 is true if X and Y are instantiated non empty intervals and R is the
@@ -838,26 +882,76 @@ interval constructed according to the subtraction table for two non empty interv
 or Y are instantiated extended reals, they are first transformed into singleton intervals.
 In all other cases the predicates fail.
 */
-iminus(X, Y, R).
+iminus([L1, H1], [L2, H2], [Result1, Result2]) :- % differenza intervalli finiti
+    iplus([L1, H1]), % no [], verifica pure se sono extended real
+    iplus([L2, H2]),
+    extended_real_subtraction(L1, H2, Result1), %%[a-d, b-c]
+    extended_real_subtraction(H1, L2, Result2),
+    !.
+iminus(X, [L2, H2], [Result1, Result2]) :- % X in SI
+    number(X),
+    iminus([X, X], [L2, H2], R),
+    !.
+
+iminus([L1, H1], Y, [Result1, Result2]) :- % Y in SI
+    number(Y),
+    iminus([L1, H1], [Y, Y], [Result1, Result2]),
+    !.
 
 % The predicate itimes/1 is true if ZI is a non empty interval.
-itimes(ZI).
-
+itimes([]):- !, fail.
+itimes(ZI):- !, is_interval(ZI).
 /* The predicate itimes/2 is true if X is an instantiated non empty interval and R unifies with it,
 or if X is an instantiated extended real and R is a singleton interval containing only X. */
-itimes(X, R).
 
+itimes(X, _) :- 
+    var(X),
+    !, fail.
+
+itimes([L, H], R) :- 
+    itimes([L, H]), % verifica non empty interval.
+    L2 is L*2,
+    H2 is H*2,
+    R = [L2, H2],
+    !.
+itimes(X, R) :-
+    extended_real(X),
+    is_singleton(R),
+    iinf(R, L1),
+    X = L1, 
+    !.
 /* The predicate itimes/3 is true if X and Y are instantiated non empty intervals and R is the
 interval constructed according to the multiplication table for two non empty intervals. If either
 X or Y are instantiated extended reals, they are first transformed into singleton intervals.
 In all other cases the predicates fail.
 */
-itimes(X, Y, R).
+itimes([L1, H1], [L2, H2], [Result1, Result2]) :- % somma intervalli finiti
+    itimes([L1, H1]), % no [], verifica pure se sono extended real
+    itimes([L2, H2]),
+    extended_real_multiplication(L1, L2, S1),
+    extended_real_multiplication(L1, H2, S2),
+    extended_real_multiplication(H1, L2, S3),
+    extended_real_multiplication(H1, H2, S4),
+    %ora dovrei prendere il minimo e il massimo il problema che devo gestire pos_infinity e min_infinity
+    %devo creare la funzione
+    extended_real_min_List([S1, S2, S3, S4], Min),
+    Result1 = Min,
+    Result2 = Max,
+    !.
+itimes(X, [L2, H2], [Result1, Result2]) :- % X in SI
+    number(X),
+    itimes([X, X], [L2, H2], R),
+    !.
+
+itimes([L1, H1], Y, [Result1, Result2]) :- % Y in SI
+    number(Y),
+    itimes([L1, H1], [Y, Y], [Result1, Result2]),
+    !.
 
 /* The predicate idiv/2 is true if X is an instantiated non empty interval and R unifies with its
-reciprocal with respect to the ''''''summation''''''' operation. If X is an extended real then it is first
+reciprocal with respect to the division operation. If X is an extended real then it is first
 transformed into a singleton interval. */
-idiv(X, R). % summation?
+idiv(X, R). 
 
 /* The predicate idiv/3 is true if X and Y are instantiated non empty intervals and R is the
 interval constructed according to the division table for two non empty intervals. If either X or
@@ -866,3 +960,4 @@ In all other cases the predicates fail.
 */
 idiv(X, Y, R).
 
+%%%% end of file -- intar.pl --
