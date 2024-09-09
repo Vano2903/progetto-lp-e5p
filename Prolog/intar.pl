@@ -256,7 +256,7 @@ div_reciprocal(X, Result) :-
     extended_real(X),
     Result is 1 / X.
 
-/*extended_real_min_List(neg_infinity, _, _ , _, Min):- 
+/* extended_real_min_List(neg_infinity, _, _ , _, Min):- 
     Min = neg_infinity,
     !.
 extended_real_min_List(_, neg_infinity, _ , _, Min):- 
@@ -267,14 +267,15 @@ extended_real_min_List(_, _, neg_infinity, _, Min):-
     !.
 extended_real_min_List(_, _, _, neg_infinity, Min):- 
     Min = neg_infinity,
-    !.*/
+    !.
+*/
 
-%dovrei sistemare ma ho sonno ciao
+% dovrei sistemare ma ho sonno ciao
 extended_real_min_List([X], X):- !. 
 extended_real_min_List([neg_infinity | Xs], Min) :- 
     Min is neg_infinity,
     !.
-%%extended_real_min_List(_, neg_infinity):- !.
+% extended_real_min_List(_, neg_infinity):- !.
 extended_real_min_List([pos_infinity | Xs], Min) :- 
     extended_real_min_List(Xs, MinRest),
     Min is MinRest,
@@ -464,6 +465,10 @@ interval(X, SI) :-
     SI = [X, X],
     !.
 
+% gestione intervalli con nil.
+interval(nil, Result) :- 
+    Result = nil,
+    !.
 /* The predicate interval/3 constructs an interval I with L as inferior point and H as superior
 point. L and H must be instantiated and be extended reals, otherwise the predicate fails. Note
 that I can be the empty interval if L > H.
@@ -570,9 +575,20 @@ is_interval([L, H]) :-
 whole_interval([neg_infinity, pos_infinity]). 
 
 % The predicate is singleton/1 is true if S is a term representing a singleton interval.
+
+/*
+is_singleton([X, _]) :- 
+    var(X),
+    !, fail.
+
+is_singleton([_, X]) :-
+    var(X),
+    !, fail.
+*/
+
 is_singleton([X, X]) :-
-    is_interval([X, X]), 
-    !.   
+    is_interval([X, X]),
+    !.
 
 % The predicate iinf/2 is true if I is a non empty interval and L is its inferior limit.
 iinf([], _) :- 
@@ -757,7 +773,6 @@ ioverlap([L1, pos_infinity], I2) :-
     L1 =< H2,
     !.
 
-
 %% intervalli finiti
 ioverlap(I1, I2) :-
     is_interval(I1),
@@ -823,7 +838,7 @@ iplus(X, R) :-
     iplus(X), % verifica non empty interval.
     R = X,
     !.
-iplus(X, R) :-
+iplus(X, R) :-                  %%%  ?- iplus(10, [10,X]).  X = 10. da correggere? leggere README
     extended_real(X),
     is_singleton(R),
     iinf(R, L1),
@@ -838,20 +853,23 @@ interval constructed according to the summation table for two non empty interval
 or Y are instantiated extended reals, they are first transformed into singleton intervals.
 In all other cases the predicates fail.
 */
-iplus([L1, H1], [L2, H2], [Result1, Result2]) :- % somma intervalli finiti
+
+% somma intervalli
+iplus([L1, H1], [L2, H2], [Result1, Result2]) :- 
     iplus([L1, H1]), % no [], verifica pure se sono extended real
     iplus([L2, H2]),
     extended_real_sum(L1, L2, Result1),
     extended_real_sum(H1, H2, Result2),
     !.
 
-iplus(X, [L2, H2], [Result1, Result2]) :- % somma intervalli finiti
-    number(X),
-    iplus([X, X], [L2, H2], R),
+% somma reale ed intervallo
+iplus(X, [L2, H2], [Result1, Result2]) :- 
+    extended_real(X),
+    iplus([X, X], [L2, H2], [Result1, Result2]),
     !.
 
-iplus([L1, H1], Y, [Result1, Result2]) :- % somma intervalli finiti
-    number(Y),
+iplus([L1, H1], Y, [Result1, Result2]) :- 
+    extended_real(Y),
     iplus([L1, H1], [Y, Y], [Result1, Result2]),
     !.
 
@@ -859,42 +877,65 @@ iplus([L1, H1], Y, [Result1, Result2]) :- % somma intervalli finiti
 its reciprocal with respect to the summation operation. If X is an extended real then it is first
 transformed into a singleton interval. */
 
-iminus(X, _) :- %not instantiated
+% gestione delle variabili libere.
+iminus(X, _) :- 
     var(X),
     !, fail.
+% fine gestione delle variabili libere.
 
-iminus(X, R) :- %extended real
+% extended real
+iminus(X, R) :- 
     extended_real(X),
-    interval(X, SI),
+    interval(X, SI),  % da rivedere non funziona con nil: iminus(nil, R) da errore.
     iminus(SI, R),
+    !.
+
+/*
+% gestione intervalli infiniti e nil
+iminus([L1, H1], R) :- 
+    iplus([L1, H1]), % verifica non empty interval.
+    minus_reciprocal(L1, nil),  
+    R = nil,
     !.
 
 iminus([L1, H1], R) :- 
     iplus([L1, H1]), % verifica non empty interval.
-    L2 is -L1,  %dovrei fare minus_reciprocal???
-    H2 is -H1,
-    R = [H2, L2], 
+    minus_reciprocal(H1, nil),  
+    R = nil,
     !.
+*/
 
+% intervalli finiti
+iminus([L1, H1], R) :- 
+    iplus([L1, H1]), % verifica non empty interval.
+    minus_reciprocal(L1, L2),  
+    minus_reciprocal(H1, H2),
+    R = [H2, L2],
+    iplus(R),
+    !.
 
 /* The predicate iminus/3 is true if X and Y are instantiated non empty intervals and R is the
 interval constructed according to the subtraction table for two non empty intervals. If either X
 or Y are instantiated extended reals, they are first transformed into singleton intervals.
 In all other cases the predicates fail.
 */
-iminus([L1, H1], [L2, H2], [Result1, Result2]) :- % differenza intervalli finiti
+
+% differenza intervalli finiti
+iminus([L1, H1], [L2, H2], [Result1, Result2]) :- 
     iplus([L1, H1]), % no [], verifica pure se sono extended real
     iplus([L2, H2]),
-    extended_real_subtraction(L1, H2, Result1), %%[a-d, b-c]
+    extended_real_subtraction(L1, H2, Result1), % [a-d, b-c]
     extended_real_subtraction(H1, L2, Result2),
     !.
-iminus(X, [L2, H2], [Result1, Result2]) :- % X in SI
-    number(X),
-    iminus([X, X], [L2, H2], R),
+
+% differenza reale ed intervallo
+iminus(X, [L2, H2], [Result1, Result2]) :- 
+    extended_real(X),
+    iminus([X, X], [L2, H2], [Result1, Result2]),
     !.
 
-iminus([L1, H1], Y, [Result1, Result2]) :- % Y in SI
-    number(Y),
+iminus([L1, H1], Y, [Result1, Result2]) :- 
+    extended_real(Y),
     iminus([L1, H1], [Y, Y], [Result1, Result2]),
     !.
 
@@ -932,8 +973,8 @@ itimes([L1, H1], [L2, H2], [Result1, Result2]) :- % somma intervalli finiti
     extended_real_multiplication(L1, H2, S2),
     extended_real_multiplication(H1, L2, S3),
     extended_real_multiplication(H1, H2, S4),
-    %ora dovrei prendere il minimo e il massimo il problema che devo gestire pos_infinity e min_infinity
-    %devo creare la funzione
+    % ora dovrei prendere il minimo e il massimo il problema che devo gestire pos_infinity e min_infinity
+    % devo creare la funzione
     extended_real_min_List([S1, S2, S3, S4], Min),
     Result1 = Min,
     Result2 = Max,

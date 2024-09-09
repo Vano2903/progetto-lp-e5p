@@ -19,7 +19,8 @@ is_singleton:
 is_interval:
     se X ha L>H is_interval generare un errore e il predicato prolog deve fallire
 
-
+is_singleton unifica se gli passi UNA variabile (es. ?- is_singleton([X, 10]). X = 10.)
+se si vuole correggere bisogna mettere controlli su var. libere (già messi commentati su is_singleton)
 
 
 
