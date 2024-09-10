@@ -313,7 +313,7 @@ extended_real_min_list([X | Xs], Min) :-
     number(X),
     extended_real_min_list(Xs, MinRest),
     MinRest \= pos_infinity,
-    Min is min(X, MinRest), !.
+    Min is min(X, MinRest), !. %warning
 
 % caso ricorsivo se la testa è un numero e il minimo del resto è pos_infinity -> Min è il numero.
 extended_real_min_list([X | Xs], X) :-
@@ -356,33 +356,30 @@ extended_real_max_list([_, _, pos_infinity, _], Max):-
 extended_real_max_list([_, _, _, pos_infinity], Max):-
     Max = pos_infinity, !.
 
-extended_real_max_list([neg_infinity, S2, S3, S4], Max):-
-    extended_real_max_list([S2, S3, S4], Max),  
-    !.
 
-extended_real_max_list([S1, neg_infinity, S3, S4], Max):-
-    extended_real_max_list([S1, S3, S4], Max),  
-    !.
-
-extended_real_max_list([S1, S2, neg_infinity, S4], Max):-
-    extended_real_max_list([S1, S2, S4], Max),  
-    !.
-
-extended_real_max_list([S1, S2, S3, neg_infinity], Max):-
-    extended_real_max_list([S1, S2, S3], Max),  
-    !.
-
-% caso base.
+% caso base numero reale.
 extended_real_max_list([X], X) :- 
-    extended_real(X),
+    number(X),
     !.
+
+% caso base -infinito.
+extended_real_max_list([neg_infinity], neg_infinity) :- !.
 
 % caso ricorsivo.
+extended_real_max_list([neg_infinity | Xs], Max) :-
+    extended_real_max_list(Xs, Max), !.
+
 extended_real_max_list([X | Xs], Max) :- 
-    extended_real(X),
+    number(X),
     extended_real_max_list(Xs, MaxRest),
-    Max is max(X, MaxRest),
-    !.
+    MaxRest \= neg_infinity,
+    Max is max(X, MaxRest), !. %warning
+
+% caso ricorsivo se la testa è un numero e il massimo del resto è neg_infinity -> Max è il numero.
+extended_real_max_list([X | Xs], X) :-
+    number(X),                        
+    extended_real_max_list(Xs, MaxRest),
+    MaxRest = neg_infinity, !.
 
 % fine logica intervallare.
 
@@ -668,13 +665,6 @@ is_interval([L, H]) :-
     L =< H,
     !.
 
-/* is_numinterval(I) :- 
-    is_interval(I),
-    iinf(I, L),
-    isup(I, H),
-    number(L),
-    number(H).
-*/
 
 % The predicate whole interval/1 is true if R is a term representing the whole interval R.
 whole_interval([neg_infinity, pos_infinity]). 
@@ -991,7 +981,7 @@ iminus([L1, H1], [L2, H2], [Result1, Result2]) :-
     extended_real_subtraction(H1, L2, Result2),
     !.
 
-% differenza reale ed intervallo
+% X or Y extended real
 iminus(X, [L2, H2], [Result1, Result2]) :- 
     extended_real(X),
     iminus([X, X], [L2, H2], [Result1, Result2]),
@@ -1008,6 +998,9 @@ itimes(ZI):- !, is_interval(ZI).
 
 /* The predicate itimes/2 is true if X is an instantiated non empty interval and R unifies with it,
 or if X is an instantiated extended real and R is a singleton interval containing only X. */
+
+
+%warning itimes/2 = iplus/2 secondo me errore di trascrizione
 itimes(X, _) :- 
     var(X),
     !, fail.
@@ -1016,14 +1009,6 @@ itimes(X, R) :-
     itimes(X), 
     R = X,
     !.
-/*
-itimes([L, H], R) :- 
-    itimes([L, H]), 
-%    L2 is L*2,      % ???????
-%    H2 is H*2,      % ???????
-    R = [L, H],
-    !.
-*/
 itimes(X, R) :-
     extended_real(X),
     is_singleton(R),
@@ -1050,18 +1035,40 @@ itimes([L1, H1], [L2, H2], [Result1, Result2]) :- % somma intervalli finiti
 
 itimes(X, [L2, H2], [Result1, Result2]) :- % X in SI
     number(X),
-    itimes([X, X], [L2, H2], R),
+    interval(X, SI),
+    itimes(SI, [L2, H2], R),
     !.
 
 itimes([L1, H1], Y, [Result1, Result2]) :- % Y in SI
     number(Y),
-    itimes([L1, H1], [Y, Y], [Result1, Result2]),
+    interval(Y, SI),
+    itimes([L1, H1], Y, [Result1, Result2]),
     !.
 
 /* The predicate idiv/2 is true if X is an instantiated non empty interval and R unifies with its
 reciprocal with respect to the division operation. If X is an extended real then it is first
 transformed into a singleton interval. */
-idiv(X, R). 
+
+%variabili libere
+idiv(X, _) :- 
+    var(X),
+    !, fail.
+idiv(X, R) :- %extended_real
+    extended_real(X),
+    interval(X, SI),  
+    idiv(SI, R),
+    !.
+% intervalli finiti
+idiv([L1, H1], R) :- 
+    iplus([L1, H1]), % verifica non empty interval.
+    div_reciprocal(L1, L2),  
+    div_reciprocal(H1, H2),
+    R = [H2, L2], %controllare 
+    iplus(R),
+    !.
+% esempio [-2, 4] da false perche l'intervallo contiene 0 che non è invertibile
+% bisogna ritornare nil??
+idiv([L1, H1], nil):- !.
 
 /* The predicate idiv/3 is true if X and Y are instantiated non empty intervals and R is the
 interval constructed according to the division table for two non empty intervals. If either X or
@@ -1069,5 +1076,4 @@ Y are instantiated extended reals, they are first transformed into singleton int
 In all other cases the predicates fail.
 */
 idiv(X, Y, R).
-
 %%%% end of file -- intar.pl --
