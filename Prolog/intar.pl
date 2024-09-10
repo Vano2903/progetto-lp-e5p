@@ -256,37 +256,135 @@ div_reciprocal(X, Result) :-
     extended_real(X),
     Result is 1 / X.
 
-/* extended_real_min_List(neg_infinity, _, _ , _, Min):- 
-    Min = neg_infinity,
-    !.
-extended_real_min_List(_, neg_infinity, _ , _, Min):- 
-    Min = neg_infinity,
-    !.
-extended_real_min_List(_, _, neg_infinity, _, Min):- 
-    Min = neg_infinity,
-    !.
-extended_real_min_List(_, _, _, neg_infinity, Min):- 
-    Min = neg_infinity,
-    !.
-*/
-
-% dovrei sistemare ma ho sonno ciao
-extended_real_min_List([X], X):- !. 
-extended_real_min_List([neg_infinity | Xs], Min) :- 
-    Min is neg_infinity,
-    !.
-% extended_real_min_List(_, neg_infinity):- !.
-extended_real_min_List([pos_infinity | Xs], Min) :- 
-    extended_real_min_List(Xs, MinRest),
-    Min is MinRest,
-    !.
-extended_real_min_List([X | Xs], Min) :- 
-    extended_real_min_List(Xs, MinRest),
-    Min is min(X, MinRest),
-    !.
-
 % fine logica aritmetica.
 
+
+
+% logica intervallare.
+
+% gestione intervallo vuoto.
+extended_real_min_list([], _) :- 
+    !, fail.
+
+% gestione delle variabili libere.
+extended_real_min_list([X, _, _, _],_) :-
+    var(X),
+    !, fail.
+
+extended_real_min_list([_, X, _, _],_) :-
+    var(X),
+    !, fail.
+
+extended_real_min_list([_, _, X, _],_) :-
+    var(X),
+    !, fail.
+
+extended_real_min_list([_, _, _, X],_) :-
+    var(X),
+    !, fail.
+% fine gestione delle variabili libere.
+
+% gestione infiniti.
+extended_real_min_list([neg_infinity, _, _, _], Min):- 
+    Min = neg_infinity, !.
+
+extended_real_min_list([_, neg_infinity, _, _], Min):- 
+    Min = neg_infinity, !.
+
+extended_real_min_list([_, _, neg_infinity, _], Min):- 
+    Min = neg_infinity, !.
+
+extended_real_min_list([_, _, _, neg_infinity], Min):- 
+    Min = neg_infinity, !.
+
+% caso base numero reale.
+extended_real_min_list([X], X) :- 
+    number(X),
+    !.
+
+% caso base +infinito.
+extended_real_min_list([pos_infinity], pos_infinity) :- !.
+
+% caso ricorsivo.
+extended_real_min_list([pos_infinity | Xs], Min) :-
+    extended_real_min_list(Xs, Min), !.
+
+extended_real_min_list([X | Xs], Min) :- 
+    number(X),
+    extended_real_min_list(Xs, MinRest),
+    MinRest \= pos_infinity,
+    Min is min(X, MinRest), !.
+
+% caso ricorsivo se la testa è un numero e il minimo del resto è pos_infinity -> Min è il numero.
+extended_real_min_list([X | Xs], X) :-
+    number(X),                        
+    extended_real_min_list(Xs, MinRest),
+    MinRest = pos_infinity, !.
+
+% gestione intervallo vuoto.
+extended_real_max_list([], _) :- 
+    !, fail.
+
+% gestione delle variabili libere.
+extended_real_max_list([X, _, _, _], _) :- 
+    var(X),
+    !, fail.
+
+extended_real_max_list([_, X, _, _], _) :-
+    var(X),
+    !, fail.
+
+extended_real_max_list([_, _, X, _], _) :-
+    var(X),
+    !, fail.
+
+extended_real_max_list([_, _, _, X], _) :-
+    var(X),
+    !, fail.
+% fine gestione delle variabili libere.
+
+% gestione infiniti.
+extended_real_max_list([pos_infinity, _, _, _], Max):- 
+    Max = pos_infinity, !.
+
+extended_real_max_list([_, pos_infinity, _, _], Max):-
+    Max = pos_infinity, !.
+
+extended_real_max_list([_, _, pos_infinity, _], Max):-
+    Max = pos_infinity, !.
+
+extended_real_max_list([_, _, _, pos_infinity], Max):-
+    Max = pos_infinity, !.
+
+extended_real_max_list([neg_infinity, S2, S3, S4], Max):-
+    extended_real_max_list([S2, S3, S4], Max),  
+    !.
+
+extended_real_max_list([S1, neg_infinity, S3, S4], Max):-
+    extended_real_max_list([S1, S3, S4], Max),  
+    !.
+
+extended_real_max_list([S1, S2, neg_infinity, S4], Max):-
+    extended_real_max_list([S1, S2, S4], Max),  
+    !.
+
+extended_real_max_list([S1, S2, S3, neg_infinity], Max):-
+    extended_real_max_list([S1, S2, S3], Max),  
+    !.
+
+% caso base.
+extended_real_max_list([X], X) :- 
+    extended_real(X),
+    !.
+
+% caso ricorsivo.
+extended_real_max_list([X | Xs], Max) :- 
+    extended_real(X),
+    extended_real_max_list(Xs, MaxRest),
+    Max is max(X, MaxRest),
+    !.
+
+% fine logica intervallare.
 
 
 % predicati aritmetici.
@@ -544,10 +642,17 @@ is_interval([pos_infinity, _]) :-
 is_interval([_, neg_infinity]) :- 
     !, fail.
 
+is_interval([nil, _]) :- 
+    write(nil),
+    !, fail.
+
+is_interval([_, nil]) :-
+    write(nil),
+    !, fail.
+
 is_interval([]) :- !.
 
-is_interval([neg_infinity, pos_infinity]) :- 
-    !.
+is_interval([neg_infinity, pos_infinity]) :- !.
 
 is_interval([neg_infinity, H]) :- 
     extended_real(H),
@@ -793,35 +898,8 @@ operations.
 % The predicate iplus/1 is true if ZI is a non empty interval.
 iplus([]) :- !, fail.
 
-iplus([neg_infinity, neg_infinity]) :- 
-    % is_interval([neg_infinity, neg_infinity]),  % non ha senso.
-    !, fail.
-
-iplus([pos_infinity, pos_infinity]) :- 
-    % is_interval([pos_infinity, pos_infinity]), 
-    !, fail.
-
-iplus([pos_infinity, _]) :- 
-    % is_interval([pos_infinity, _]), 
-    !, fail.
-
-iplus([_, neg_infinity]) :- 
-    % is_interval([_, neg_infinity]), 
-    !, fail.
-
-iplus([neg_infinity, pos_infinity]).
-    % :- is_interval([neg_infinity, pos_infinity]), !. % per definizione
-
-iplus([neg_infinity, H]) :- 
-    is_interval([neg_infinity, H]), 
-    !.
-
-iplus([L, pos_infinity]) :- 
-    is_interval([L, pos_infinity]), 
-    !.
-
 iplus(ZI) :- 
-    !, is_interval(ZI). % in questo modo se utilizzi una variabile esegue il controllo in modo giusto e da errore.
+    !, is_interval(ZI). % is_interval controlla già i casi con infinito non validi quindi non serve fare altri controlli.
 
 /*
 The predicate iplus/2 is true if X is an instantiated non empty interval and R unifies with it,
@@ -835,7 +913,7 @@ iplus(X, _) :-
 % fine gestione delle variabili libere.
 
 iplus(X, R) :- 
-    iplus(X), % verifica non empty interval.
+    iplus(X), % vverifica se intervallo + se non vuoto
     R = X,
     !.
 iplus(X, R) :-                  %%%  ?- iplus(10, [10,X]).  X = 10. da correggere? leggere README
@@ -886,24 +964,9 @@ iminus(X, _) :-
 % extended real
 iminus(X, R) :- 
     extended_real(X),
-    interval(X, SI),  % da rivedere non funziona con nil: iminus(nil, R) da errore.
+    interval(X, SI),  
     iminus(SI, R),
     !.
-
-/*
-% gestione intervalli infiniti e nil
-iminus([L1, H1], R) :- 
-    iplus([L1, H1]), % verifica non empty interval.
-    minus_reciprocal(L1, nil),  
-    R = nil,
-    !.
-
-iminus([L1, H1], R) :- 
-    iplus([L1, H1]), % verifica non empty interval.
-    minus_reciprocal(H1, nil),  
-    R = nil,
-    !.
-*/
 
 % intervalli finiti
 iminus([L1, H1], R) :- 
@@ -942,19 +1005,25 @@ iminus([L1, H1], Y, [Result1, Result2]) :-
 % The predicate itimes/1 is true if ZI is a non empty interval.
 itimes([]):- !, fail.
 itimes(ZI):- !, is_interval(ZI).
+
 /* The predicate itimes/2 is true if X is an instantiated non empty interval and R unifies with it,
 or if X is an instantiated extended real and R is a singleton interval containing only X. */
-
 itimes(X, _) :- 
     var(X),
     !, fail.
 
-itimes([L, H], R) :- 
-    itimes([L, H]), % verifica non empty interval.
-    L2 is L*2,
-    H2 is H*2,
-    R = [L2, H2],
+itimes(X, R) :- 
+    itimes(X), 
+    R = X,
     !.
+/*
+itimes([L, H], R) :- 
+    itimes([L, H]), 
+%    L2 is L*2,      % ???????
+%    H2 is H*2,      % ???????
+    R = [L, H],
+    !.
+*/
 itimes(X, R) :-
     extended_real(X),
     is_singleton(R),
@@ -967,18 +1036,18 @@ X or Y are instantiated extended reals, they are first transformed into singleto
 In all other cases the predicates fail.
 */
 itimes([L1, H1], [L2, H2], [Result1, Result2]) :- % somma intervalli finiti
-    itimes([L1, H1]), % no [], verifica pure se sono extended real
+    itimes([L1, H1]), 
     itimes([L2, H2]),
     extended_real_multiplication(L1, L2, S1),
     extended_real_multiplication(L1, H2, S2),
     extended_real_multiplication(H1, L2, S3),
     extended_real_multiplication(H1, H2, S4),
-    % ora dovrei prendere il minimo e il massimo il problema che devo gestire pos_infinity e min_infinity
-    % devo creare la funzione
-    extended_real_min_List([S1, S2, S3, S4], Min),
+    extended_real_min_list([S1, S2, S3, S4], Min),
+    extended_real_max_list([S1, S2, S3, S4], Max),
     Result1 = Min,
     Result2 = Max,
     !.
+
 itimes(X, [L2, H2], [Result1, Result2]) :- % X in SI
     number(X),
     itimes([X, X], [L2, H2], R),
