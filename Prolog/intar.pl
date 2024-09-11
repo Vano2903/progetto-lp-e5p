@@ -267,121 +267,121 @@ extended_real_min_list([], _) :-
     !, fail.
 
 % gestione delle variabili libere.
-extended_real_min_list([X, _, _, _],_) :-
+extended_real_min_list([X], _) :-
     var(X),
     !, fail.
 
-extended_real_min_list([_, X, _, _],_) :-
-    var(X),
-    !, fail.
-
-extended_real_min_list([_, _, X, _],_) :-
-    var(X),
-    !, fail.
-
-extended_real_min_list([_, _, _, X],_) :-
+extended_real_min_list([X | _], _) :-
     var(X),
     !, fail.
 % fine gestione delle variabili libere.
 
-% gestione infiniti.
-extended_real_min_list([neg_infinity, _, _, _], Min):- 
-    Min = neg_infinity, !.
+% Caso base numero.
+extended_real_min_list([X], X) :-
+    nonvar(X),
+    extended_real(X).
 
-extended_real_min_list([_, neg_infinity, _, _], Min):- 
-    Min = neg_infinity, !.
+% caso base neg_infinity.
+extended_real_min_list([neg_infinity], neg_infinity).
 
-extended_real_min_list([_, _, neg_infinity, _], Min):- 
-    Min = neg_infinity, !.
+% caso base pos_infinity.
+extended_real_min_list([pos_infinity], pos_infinity).
 
-extended_real_min_list([_, _, _, neg_infinity], Min):- 
-    Min = neg_infinity, !.
-
-% caso base numero reale.
-extended_real_min_list([X], X) :- 
-    number(X),
-    !.
-
-% caso base +infinito.
-extended_real_min_list([pos_infinity], pos_infinity) :- !.
-
-% caso ricorsivo.
+% Caso ricorsivo con pos_infinity.
 extended_real_min_list([pos_infinity | Xs], Min) :-
     extended_real_min_list(Xs, Min), !.
 
-extended_real_min_list([X | Xs], Min) :- 
-    number(X),
-    extended_real_min_list(Xs, MinRest),
-    MinRest \= pos_infinity,
-    Min is min(X, MinRest), !. %warning
+% Caso ricorsivo.
+extended_real_min_list([X | Xs], Min) :-
+    nonvar(X),
+    extended_real(X),
+    extended_real_min_list(Xs, MinXs),
+    er_min(X, MinXs, Min), 
+    !.
 
-% caso ricorsivo se la testa è un numero e il minimo del resto è pos_infinity -> Min è il numero.
-extended_real_min_list([X | Xs], X) :-
-    number(X),                        
-    extended_real_min_list(Xs, MinRest),
-    MinRest = pos_infinity, !.
+% calcolo del minimo su reali estesi.
+er_min(nil, _, _) :- 
+    !, fail.
+
+er_min(_, nil, _) :- 
+    !, fail.
+
+er_min(X, pos_infinity, X) :- 
+    number(X).
+
+er_min(_, neg_infinity, neg_infinity).
+
+er_min(neg_infinity, _, neg_infinity).
+
+er_min(X, MinXs, X) :- 
+    number(X), 
+    X =< MinXs.
+
+er_min(X, MinXs, MinXs) :- 
+    number(X), 
+    X > MinXs.
 
 % gestione intervallo vuoto.
 extended_real_max_list([], _) :- 
     !, fail.
 
 % gestione delle variabili libere.
-extended_real_max_list([X, _, _, _], _) :- 
+extended_real_max_list([X], _) :-
     var(X),
     !, fail.
 
-extended_real_max_list([_, X, _, _], _) :-
-    var(X),
-    !, fail.
-
-extended_real_max_list([_, _, X, _], _) :-
-    var(X),
-    !, fail.
-
-extended_real_max_list([_, _, _, X], _) :-
+extended_real_max_list([X | _], _) :-
     var(X),
     !, fail.
 % fine gestione delle variabili libere.
 
-% gestione infiniti.
-extended_real_max_list([pos_infinity, _, _, _], Max):- 
-    Max = pos_infinity, !.
+% Caso base numero.
+extended_real_max_list([X], X) :-
+    nonvar(X),
+    extended_real(X), !.
 
-extended_real_max_list([_, pos_infinity, _, _], Max):-
-    Max = pos_infinity, !.
+% caso base pos_infinity.
+extended_real_max_list([pos_infinity], pos_infinity).
 
-extended_real_max_list([_, _, pos_infinity, _], Max):-
-    Max = pos_infinity, !.
+% caso base neg_infinity.
+extended_real_max_list([neg_infinity], neg_infinity).
 
-extended_real_max_list([_, _, _, pos_infinity], Max):-
-    Max = pos_infinity, !.
-
-
-% caso base numero reale.
-extended_real_max_list([X], X) :- 
-    number(X),
-    !.
-
-% caso base -infinito.
-extended_real_max_list([neg_infinity], neg_infinity) :- !.
-
-% caso ricorsivo.
+% Caso ricorsivo con neg_infinity.
 extended_real_max_list([neg_infinity | Xs], Max) :-
     extended_real_max_list(Xs, Max), !.
 
-extended_real_max_list([X | Xs], Max) :- 
-    number(X),
-    extended_real_max_list(Xs, MaxRest),
-    MaxRest \= neg_infinity,
-    Max is max(X, MaxRest), !. %warning
+% Caso ricorsivo.
+extended_real_max_list([X | Xs], Max) :-
+    nonvar(X),
+    extended_real(X),
+    extended_real_max_list(Xs, MaxXs),
+    er_max(X, MaxXs, Max), 
+    !.
 
-% caso ricorsivo se la testa è un numero e il massimo del resto è neg_infinity -> Max è il numero.
-extended_real_max_list([X | Xs], X) :-
-    number(X),                        
-    extended_real_max_list(Xs, MaxRest),
-    MaxRest = neg_infinity, !.
+% calcolo del massimo su reali estesi.
+er_max(nil, _, _) :- 
+    !, fail.
+
+er_max(_, nil, _) :- 
+    !, fail.
+
+er_max(X, neg_infinity, X) :- 
+    number(X).
+
+er_max(_, pos_infinity, pos_infinity).
+
+er_max(pos_infinity, _, pos_infinity).
+
+er_max(X, MaxXs, X) :- 
+    number(X), 
+    X > MaxXs.
+
+er_max(X, MaxXs, MaxXs) :- 
+    number(X), 
+    X =< MaxXs.
 
 % fine logica intervallare.
+
 
 
 % predicati aritmetici.
@@ -1049,11 +1049,14 @@ itimes([L1, H1], Y, [Result1, Result2]) :- % Y in SI
 reciprocal with respect to the division operation. If X is an extended real then it is first
 transformed into a singleton interval. */
 
-%variabili libere
+% gestione delle variabili libere
 idiv(X, _) :- 
     var(X),
     !, fail.
-idiv(X, R) :- %extended_real
+% fine gestione delle variabili libere.
+
+% extended_real
+idiv(X, R) :- 
     extended_real(X),
     interval(X, SI),  
     idiv(SI, R),
@@ -1063,7 +1066,7 @@ idiv([L1, H1], R) :-
     iplus([L1, H1]), % verifica non empty interval.
     div_reciprocal(L1, L2),  
     div_reciprocal(H1, H2),
-    R = [H2, L2], %controllare 
+    R = [H2, L2], % controllare 
     iplus(R),
     !.
 % esempio [-2, 4] da false perche l'intervallo contiene 0 che non è invertibile
@@ -1075,5 +1078,18 @@ interval constructed according to the division table for two non empty intervals
 Y are instantiated extended reals, they are first transformed into singleton intervals.
 In all other cases the predicates fail.
 */
-idiv(X, Y, R).
+% gestione delle variabili libere.
+idiv(X, _, _) :- 
+    var(X),
+    !, fail.
+
+idiv(_, Y, _) :-
+    var(Y),
+    !, fail.
+% fine gestione delle variabili libere.
+
+
+
+
+
 %%%% end of file -- intar.pl --
