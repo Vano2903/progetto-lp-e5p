@@ -1020,7 +1020,7 @@ interval constructed according to the multiplication table for two non empty int
 X or Y are instantiated extended reals, they are first transformed into singleton intervals.
 In all other cases the predicates fail.
 */
-itimes([L1, H1], [L2, H2], [Result1, Result2]) :- % somma intervalli finiti
+itimes([L1, H1], [L2, H2], [Result1, Result2]) :- 
     itimes([L1, H1]), 
     itimes([L2, H2]),
     extended_real_multiplication(L1, L2, S1),
@@ -1036,13 +1036,13 @@ itimes([L1, H1], [L2, H2], [Result1, Result2]) :- % somma intervalli finiti
 itimes(X, [L2, H2], [Result1, Result2]) :- % X in SI
     number(X),
     interval(X, SI),
-    itimes(SI, [L2, H2], R),
+    itimes(SI, [L2, H2], [Result1, Result2]),
     !.
 
 itimes([L1, H1], Y, [Result1, Result2]) :- % Y in SI
     number(Y),
     interval(Y, SI),
-    itimes([L1, H1], Y, [Result1, Result2]),
+    itimes([L1, H1], SI, [Result1, Result2]),
     !.
 
 /* The predicate idiv/2 is true if X is an instantiated non empty interval and R unifies with its
@@ -1071,7 +1071,7 @@ idiv([L1, H1], R) :-
     !.
 % esempio [-2, 4] da false perche l'intervallo contiene 0 che non è invertibile
 % bisogna ritornare nil??
-idiv([L1, H1], nil):- !.
+idiv(_, nil):- !.
 
 /* The predicate idiv/3 is true if X and Y are instantiated non empty intervals and R is the
 interval constructed according to the division table for two non empty intervals. If either X or
@@ -1088,8 +1088,29 @@ idiv(_, Y, _) :-
     !, fail.
 % fine gestione delle variabili libere.
 
+idiv([L1, H1], [L2, H2], [Result1, Result2]) :- 
+    itimes([L1, H1]),                          
+    itimes([L2, H2]),
+    extended_real_division(L1, L2, S1),
+    extended_real_division(L1, H2, S2),
+    extended_real_division(H1, L2, S3),
+    extended_real_division(H1, H2, S4),
+    extended_real_min_list([S1, S2, S3, S4], Min),
+    extended_real_max_list([S1, S2, S3, S4], Max),
+    Result1 = Min,
+    Result2 = Max,
+    !.
 
 
+idiv(X, [L2, H2], [Result1, Result2]) :- % X in SI
+    number(X),
+    interval(X, SI),
+    idiv(SI, [L2, H2], [Result1, Result2]),
+    !.
 
-
+idiv([L1, H1], Y, [Result1, Result2]) :- % Y in SI
+    number(Y),
+    interval(Y, SI),
+    idiv([L1, H1], SI, [Result1, Result2]),
+    !.
 %%%% end of file -- intar.pl --
