@@ -534,6 +534,8 @@ div_e(X, Y, Result) :-
 the interval arithmetic operations.
 */
 
+
+
 % This predicate is true only of the empty interval [].
 empty_interval([]).
 
@@ -554,16 +556,16 @@ interval(neg_infinity, _) :-
     !, fail.
 interval(pos_infinity, _) :- 
     !, fail.
+
+% gestione intervallo con nil.
+interval(nil, nil) :-  !.
+
 % creazione di un intervallo singleton.
 interval(X, SI) :- 
     extended_real(X),
     SI = [X, X],
     !.
 
-% gestione intervalli con nil.
-interval(nil, Result) :- 
-    Result = nil,
-    !.
 /* The predicate interval/3 constructs an interval I with L as inferior point and H as superior
 point. L and H must be instantiated and be extended reals, otherwise the predicate fails. Note
 that I can be the empty interval if L > H.
@@ -665,22 +667,10 @@ is_interval([L, H]) :-
     L =< H,
     !.
 
-
 % The predicate whole interval/1 is true if R is a term representing the whole interval R.
 whole_interval([neg_infinity, pos_infinity]). 
 
 % The predicate is singleton/1 is true if S is a term representing a singleton interval.
-
-/*
-is_singleton([X, _]) :- 
-    var(X),
-    !, fail.
-
-is_singleton([_, X]) :-
-    var(X),
-    !, fail.
-*/
-
 is_singleton([X, X]) :-
     is_interval([X, X]),
     !.
@@ -1088,29 +1078,146 @@ idiv(_, Y, _) :-
     !, fail.
 % fine gestione delle variabili libere.
 
-idiv([L1, H1], [L2, H2], [Result1, Result2]) :- 
-    itimes([L1, H1]),                          
-    itimes([L2, H2]),
-    extended_real_division(L1, L2, S1),
-    extended_real_division(L1, H2, S2),
-    extended_real_division(H1, L2, S3),
-    extended_real_division(H1, H2, S4),
+%%% manca da gestire gli intervalli Z, ovvero [0,0] (non presenti in tabella).
+%%% per ora facciamo così ma bisogna controllare se è corretto.
+idiv(_, [0, 0], nil) :- !.
+
+idiv([0, 0], _, nil) :- !.
+
+% gestione I2 = M -> c<0 d>0
+idiv([0, B], [C, D], [Result1, Result2]) :- 
+    itimes([0, B]),                          
+    itimes([C, D]),
+    C < 0,
+    D > 0,
+    Result1 = neg_infinity,
+    Result2 = pos_infinity,
+    !.
+
+idiv([A, 0], [C, D], [Result1, Result2]) :- 
+    itimes([A, 0]),                          
+    itimes([C, D]),
+    C < 0,
+    D > 0,
+    Result1 = neg_infinity,
+    Result2 = pos_infinity,
+    !.
+
+idiv([A, B], [C, D], [Result1, Result2]) :- 
+    itimes([A, B]),                          
+    itimes([C, D]),
+    C < 0,
+    D > 0,
+    A < 0,
+    B > 0,
+    Result1 = neg_infinity,
+    Result2 = pos_infinity,
+    !.
+
+idiv([A, B], [C, D], [I1, I2]) :- 
+    itimes([A, B]),                          
+    itimes([C, D]),
+    C < 0,
+    D > 0,
+    A > 0,
+    idiv([A, B], [C, 0], I1),
+    idiv([A, B], [0, D], I2),
+    !.
+
+idiv([A, B], [C, D], [I1, I2]) :- 
+    itimes([A, B]),                          
+    itimes([C, D]),
+    C < 0,
+    D > 0,
+    B < 0,
+    idiv([A, B], [0, D], I1),
+    idiv([A, B], [C, 0], I2),
+    !.
+
+% caso "base".
+idiv([A, B], [C, D], [Result1, Result2]) :- 
+    itimes([A, B]),                          
+    itimes([C, D]),
+    extended_real_division(A, C, S1),
+    extended_real_division(A, D, S2),
+    extended_real_division(B, C, S3),
+    extended_real_division(B, D, S4),
     extended_real_min_list([S1, S2, S3, S4], Min),
     extended_real_max_list([S1, S2, S3, S4], Max),
     Result1 = Min,
     Result2 = Max,
     !.
 
-
-idiv(X, [L2, H2], [Result1, Result2]) :- % X in SI
-    number(X),
-    interval(X, SI),
-    idiv(SI, [L2, H2], [Result1, Result2]),
+% gestione eccezione C = 0, P1/P e P0/P.
+idiv([A, B], [0, D], [Result1, Result2]) :- 
+    iplus([A, B]), 
+    iplus([0, D]),
+    A >= 0,
+    extended_real_division(A, D, S1),
+    Result1 = S1,
+    Result2 = pos_infinity,
     !.
 
-idiv([L1, H1], Y, [Result1, Result2]) :- % Y in SI
+% gestione eccezione C = 0, M/P.
+idiv([A, B], [0, D], [Result1, Result2]) :- 
+    iplus([A, B]), 
+    iplus([0, D]),
+    A < 0,
+    B > 0,
+    Result1 = neg_infinity,
+    Result2 = pos_infinity,
+    !.
+
+% gestione eccezione C = 0, N1/P e N0/P.
+idiv([A, B], [0, D], [Result1, Result2]) :- 
+    iplus([A, B]), 
+    iplus([0, D]),
+    B =< 0,
+    extended_real_division(B, D, S1),
+    Result1 = neg_infinity,
+    Result2 = S1,
+    !.
+
+% gestione eccezione D = 0, P1/N e P0/N.
+idiv([A, B], [C, 0], [Result1, Result2]) :- 
+    iplus([A, B]), 
+    iplus([C, 0]),
+    A >= 0,
+    extended_real_division(A, C, S1),
+    Result1 = neg_infinity,
+    Result2 = S1,
+    !.
+
+% gestione eccezione D = 0, M/N.
+idiv([A, B], [C, 0], [Result1, Result2]) :- 
+    iplus([A, B]), 
+    iplus([C, 0]),
+    A < 0,
+    B > 0,
+    Result1 = neg_infinity,
+    Result2 = pos_infinity,
+    !.
+
+% gestione eccezione D = 0, N1/N e N0/N.
+
+idiv([A, B], [C, 0], [Result1, Result2]) :- 
+    iplus([A, B]), 
+    iplus([C, 0]),
+    B =< 0,
+    extended_real_division(B, C, S1),
+    Result1 = S1,
+    Result2 = pos_infinity,
+    !.
+
+idiv(X, [C, D], [Result1, Result2]) :- % X in SI
+    number(X),
+    interval(X, SI),
+    idiv(SI, [C, D], [Result1, Result2]),
+    !.
+
+idiv([A, B], Y, [Result1, Result2]) :- % Y in SI
     number(Y),
     interval(Y, SI),
-    idiv([L1, H1], SI, [Result1, Result2]),
+    idiv([A, B], SI, [Result1, Result2]),
     !.
 %%%% end of file -- intar.pl --
