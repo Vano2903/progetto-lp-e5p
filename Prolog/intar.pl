@@ -8,8 +8,7 @@
 
 % definizione di reale esteso.
 
-% extended_real(infinity).
-extended_real(nil).         
+% extended_real(infinity).        
 
 extended_real(pos_infinity).
 
@@ -30,11 +29,11 @@ extended_real_sum(_, Y, _) :-
     !, fail.
 % fine gestione delle variabili libere.
 
-extended_real_sum(nil, nil, nil) :- !.
+extended_real_sum(pos_infinity, neg_infinity, _) :- 
+    !, fail.
 
-extended_real_sum(pos_infinity, neg_infinity, nil) :- !.
-
-extended_real_sum(neg_infinity, pos_infinity, nil) :- !.
+extended_real_sum(neg_infinity, pos_infinity, _) :- 
+    !, fail.
 
 extended_real_sum(pos_infinity, _, pos_infinity):- !.
 
@@ -60,11 +59,11 @@ extended_real_subtraction(_, Y, _) :-
     !, fail.
 % fine gestione delle variabili libere.
 
-extended_real_subtraction(nil, nil, nil) :- !.
+extended_real_subtraction(neg_infinity, neg_infinity, _) :- 
+    !, fail.
 
-extended_real_subtraction(neg_infinity, neg_infinity, nil) :- !.
-
-extended_real_subtraction(pos_infinity, pos_infinity, nil) :-!.
+extended_real_subtraction(pos_infinity, pos_infinity, _) :-
+    !, fail.
 
 extended_real_subtraction(pos_infinity, _, pos_infinity):- !.
 
@@ -90,15 +89,17 @@ extended_real_multiplication(_, Y, _) :-
     !, fail.
 % fine gestione delle variabili libere.
 
-extended_real_multiplication(nil, nil, nil) :- !.
+extended_real_multiplication(pos_infinity, 0, _) :- 
+    !, fail.
 
-extended_real_multiplication(pos_infinity, 0, nil) :- !.
+extended_real_multiplication(0, pos_infinity, _) :-
+    !, fail.
 
-extended_real_multiplication(0, pos_infinity, nil) :- !.
+extended_real_multiplication(neg_infinity, 0, _) :- 
+    !, fail.
 
-extended_real_multiplication(neg_infinity, 0, nil) :- !.
-
-extended_real_multiplication(0, neg_infinity, nil) :- !.
+extended_real_multiplication(0, neg_infinity, _) :- 
+    !, fail.
 
 extended_real_multiplication(pos_infinity, neg_infinity, neg_infinity) :- !.
 
@@ -171,19 +172,22 @@ extended_real_division(_, Y, _) :-
     !, fail.
 % fine gestione delle variabili libere.
 
-extended_real_division(nil, 0, nil) :- !.
-
-extended_real_division(_, 0, nil) :- !.
+extended_real_division(_, 0, _) :- 
+    !, fail.
 
 extended_real_division(0, _, 0):- !.
 
-extended_real_division(neg_infinity, neg_infinity, nil) :- !.
+extended_real_division(neg_infinity, neg_infinity, _) :- 
+    !, fail.
 
-extended_real_division(neg_infinity, pos_infinity, nil) :- !.
+extended_real_division(neg_infinity, pos_infinity, _) :- 
+    !, fail.
 
-extended_real_division(pos_infinity, pos_infinity, nil) :- !.
+extended_real_division(pos_infinity, pos_infinity, _) :-
+    !, fail.
 
-extended_real_division(pos_infinity, neg_infinity, nil) :- !.
+extended_real_division(pos_infinity, neg_infinity, _) :- 
+    !, fail.
 
 extended_real_division(pos_infinity, X, Result) :-
     extended_real(X),
@@ -228,11 +232,14 @@ minus_reciprocal(X, _) :-
     !, fail.
 % fine gestione delle variabili libere.
 
-minus_reciprocal(nil, nil) :- !. % o fail.
+minus_reciprocal(nil, _) :- 
+    !, fail. 
 
-minus_reciprocal(pos_infinity, nil) :- !.
+minus_reciprocal(pos_infinity, _) :- 
+    !, fail.
 
-minus_reciprocal(neg_infinity, nil) :- !.
+minus_reciprocal(neg_infinity, _) :-
+    !, fail.
 
 minus_reciprocal(X, Result) :- 
     extended_real(X), 
@@ -244,13 +251,17 @@ div_reciprocal(X, _) :-
     !, fail.
 % fine gestione delle variabili libere.
 
-div_reciprocal(nil, nil) :- !. % o fail.
+div_reciprocal(nil, _) :- 
+    !, fail.
 
-div_reciprocal(pos_infinity, nil) :- !.
+div_reciprocal(pos_infinity, _) :- 
+    !, fail.
 
-div_reciprocal(neg_infinity, nil) :- !.
+div_reciprocal(neg_infinity, _) :- 
+    !, fail.
 
-div_reciprocal(0, nil) :- !.
+div_reciprocal(0, _) :- 
+    !, fail.
 
 div_reciprocal(X, Result) :-
     extended_real(X),
@@ -557,9 +568,6 @@ interval(neg_infinity, _) :-
 interval(pos_infinity, _) :- 
     !, fail.
 
-% gestione intervallo con nil.
-interval(nil, nil) :-  !.
-
 % creazione di un intervallo singleton.
 interval(X, SI) :- 
     extended_real(X),
@@ -641,14 +649,6 @@ is_interval([pos_infinity, _]) :-
 is_interval([_, neg_infinity]) :- 
     !, fail.
 
-is_interval([nil, _]) :- 
-    write(nil),
-    !, fail.
-
-is_interval([_, nil]) :-
-    write(nil),
-    !, fail.
-
 is_interval([]) :- !.
 
 is_interval([neg_infinity, pos_infinity]) :- !.
@@ -667,6 +667,16 @@ is_interval([L, H]) :-
     L =< H,
     !.
 
+% gestione intervalli disgiunti.
+
+is_interval([I1, I2]) :- 
+    is_interval(I1), 
+    is_interval(I2),
+    isup(I1, H1),
+    iinf(I2, L2),
+    H1 =< L2,   % o forse solo < ???
+    !.
+
 % The predicate whole interval/1 is true if R is a term representing the whole interval R.
 whole_interval([neg_infinity, pos_infinity]). 
 
@@ -679,6 +689,12 @@ is_singleton([X, X]) :-
 iinf([], _) :- 
     !, fail.
 
+% gestione intervalli disgiunti.
+iinf([I1, I2], X) :- 
+    is_interval([I1, I2]),
+    iinf(I1, X),
+    !.
+
 iinf(I, L) :-
     is_interval(I),
     I = [L, _],
@@ -687,6 +703,12 @@ iinf(I, L) :-
 % The predicate isup/2 is true if I is a non empty interval and H is its superior limit.
 isup([], _) :- 
     !, fail.
+
+% gestione intervalli disgiunti.
+isup([I1, I2], X) :- 
+    is_interval([I1, I2]),
+    isup(I2, X),
+    !.
 
 isup(I, H) :- 
     is_interval(I),
@@ -716,6 +738,17 @@ icontains([neg_infinity, neg_infinity], _) :-
 icontains([pos_infinity, pos_infinity], _) :- 
     !, fail.
 
+% gestione intervalli disgiunti.
+icontains([I1, I2], X) :- 
+    is_interval([I1, I2]),
+    icontains(I1, X),
+    !.
+
+icontains([I1, I2], X) :- 
+    is_interval([I1, I2]),
+    icontains(I2, X),
+    !.
+
 % intervalli uguali
 icontains(I, I) :-
     is_interval(I), 
@@ -736,9 +769,6 @@ icontains([neg_infinity, pos_infinity], X) :-
 icontains([neg_infinity, pos_infinity], I) :- 
     is_interval(I), 
     !.
-
-% icontains([_, _], [neg_infinity, pos_infinity]) :- 
-%    !, fail.
 
 icontains([neg_infinity, H], neg_infinity) :- 
     extended_real(H), 
@@ -807,30 +837,55 @@ icontains(I, I2) :-
 if either I1 or I2 is not an interval.
 */ 
 
-%% dal forum (-inf, n1) e (-inf, n2) n1<n2 true
+% fail cases
+ioverlap([neg_infinity, neg_infinity], _) :- 
+    !, fail.   
 
-ioverlap(I, I2) :-   % per definizione si overlappano (ha confermato sul forum).
+ioverlap([pos_infinity, pos_infinity], _) :- 
+    !, fail.
+
+ioverlap([pos_infinity, neg_infinity], _) :- 
+    !, fail.
+
+ioverlap(_, [neg_infinity, neg_infinity]) :- 
+    !, fail.
+
+ioverlap(_, [pos_infinity, pos_infinity]) :- 
+    !, fail.
+
+ioverlap(_, [pos_infinity, neg_infinity]) :- 
+    !, fail.
+
+% gestione intervalli disgiunti. 
+ioverlap([I1, I2], X) :- 
+    is_interval([I1, I2]),
+    ioverlap(I1, X),
+    !.
+                                % manca da gestire il caso in cui entrambi gli int sono disgiunti.
+                                % ?- ioverlap([[-1,0], [1,5]], [[neg_infinity,2], [2,4]]). 
+                                % false. invece di true.
+ioverlap([I1, I2], X) :-
+    is_interval([I1, I2]),
+    ioverlap(I2, X),
+    !.
+
+% intervalli uguali
+ioverlap(I, I2) :-
     icontains(I, I2), !.
 
-% fail cases
-ioverlap([neg_infinity, neg_infinity], _) :- !, fail.   
-
-ioverlap([pos_infinity, pos_infinity], _) :- !, fail.
-
-ioverlap([pos_infinity, neg_infinity], _) :- !, fail.
-
-ioverlap(_, [neg_infinity, neg_infinity]) :- !, fail.
-
-ioverlap(_, [pos_infinity, pos_infinity]) :- !, fail.
-
-ioverlap(_, [pos_infinity, neg_infinity]) :- !, fail.
-
-% both interval infinity
-
 % whole interval always overlap
-ioverlap(I1, [neg_infinity, pos_infinity]) :- is_interval(I1), !.
+ioverlap(I1, [neg_infinity, pos_infinity]) :- 
+    is_interval(I1), 
+    !.
 
-ioverlap([neg_infinity, pos_infinity], I2) :- is_interval(I2), !.
+ioverlap([neg_infinity, pos_infinity], I2) :- 
+    is_interval(I2), 
+    !.
+
+% I1 infinito I2 infinito
+ioverlap([neg_infinity, _], [neg_infinity, _]) :- !.
+
+ioverlap([_, pos_infinity], [_, pos_infinity]) :- !.
 
 % I1 finito I2 infinito
 ioverlap(I1, [neg_infinity, H2]) :-
@@ -862,11 +917,17 @@ ioverlap([L1, pos_infinity], I2) :-
 ioverlap(I1, I2) :-
     is_interval(I1),
     is_interval(I2),
-    iinf(I1, L1),               
+    iinf(I1, L1),    
+    number(L1),           
     isup(I1, H1),
+    number(H1),
     iinf(I2, L2),
+    number(L2),
     isup(I2, H2),
-    (L1 =< H2, H1 >= L2), !.
+    number(H2),
+    L1 =< H2, 
+    H1 >= L2, 
+    !.
 
 % end of interval construction
 
@@ -1061,7 +1122,8 @@ idiv([L1, H1], R) :-
     !.
 % esempio [-2, 4] da false perche l'intervallo contiene 0 che non è invertibile
 % bisogna ritornare nil??
-idiv(_, nil):- !.
+idiv(_, _):- 
+    !, fail.
 
 /* The predicate idiv/3 is true if X and Y are instantiated non empty intervals and R is the
 interval constructed according to the division table for two non empty intervals. If either X or
@@ -1088,8 +1150,8 @@ idiv([0, 0], _, nil) :- !.
 idiv([0, B], [C, D], [Result1, Result2]) :- 
     itimes([0, B]),                          
     itimes([C, D]),
-    C < 0,
-    D > 0,
+    C < 0,                  % per gestire gli infiniti forse la cosa migliore è creare un predicato che verifica il segno
+    D > 0,                  % e gestisce correttamente +- infinito.
     Result1 = neg_infinity,
     Result2 = pos_infinity,
     !.
@@ -1220,4 +1282,5 @@ idiv([A, B], Y, [Result1, Result2]) :- % Y in SI
     interval(Y, SI),
     idiv([A, B], SI, [Result1, Result2]),
     !.
+
 %%%% end of file -- intar.pl --
