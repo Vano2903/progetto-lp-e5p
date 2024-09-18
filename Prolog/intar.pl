@@ -17,6 +17,21 @@ extended_real(neg_infinity).
 extended_real(X) :- 
     number(X).
 
+% negative real
+neg_r(neg_infinity) :- !.
+neg_r(X) :- 
+    extended_real(X), 
+    X =< 0,
+    !.
+
+% positive real
+pos_r(pos_infinity) :- !.
+pos_r(X) :- 
+    extended_real(X), 
+    X >= 0,
+    !.
+
+
 % logica aritmetica.
 
 % gestione delle variabili libere.
@@ -110,50 +125,45 @@ extended_real_multiplication(pos_infinity, pos_infinity, pos_infinity) :- !.
 extended_real_multiplication(neg_infinity, neg_infinity, pos_infinity) :- !.
 
 extended_real_multiplication(pos_infinity, X, Result) :-
-    extended_real(X),
-    X < 0,
+    neg_r(X),
     Result = neg_infinity, 
     !.
 
 extended_real_multiplication(pos_infinity, X, Result) :-
-    extended_real(X),
-    X > 0,
+    pos_r(X),
     Result = pos_infinity, 
     !.
 
 extended_real_multiplication(neg_infinity, X, Result) :-
-    extended_real(X),
-    X < 0,
+    neg_r(X),
     Result = pos_infinity, 
     !.
 
 extended_real_multiplication(neg_infinity, X, Result) :-
-    extended_real(X),
-    X > 0,
+    pos_r(X),
+    Result = neg_infinity, 
+    !.
+
+extended_real_multiplication(X, pos_infinity, Result) :-
+    neg_r(X),
     Result = neg_infinity, 
     !.
 
 extended_real_multiplication(X, pos_infinity, Result) :-
     extended_real(X),
-    X < 0,
-    Result = neg_infinity, 
-    !.
-
-extended_real_multiplication(X, pos_infinity, Result) :-
-    extended_real(X),
-    X > 0,
+    pos_r(X),
     Result = pos_infinity, 
     !.
 
 extended_real_multiplication(X, neg_infinity, Result) :-
     extended_real(X),
-    X < 0,
+    neg_r(X),
     Result = pos_infinity, 
     !.
 
 extended_real_multiplication(X, neg_infinity, Result) :-
     extended_real(X),
-    X > 0,
+    pos_r(X),
     Result = neg_infinity, 
     !.
 
@@ -191,25 +201,25 @@ extended_real_division(pos_infinity, neg_infinity, _) :-
 
 extended_real_division(pos_infinity, X, Result) :-
     extended_real(X),
-    X < 0,
+    neg_r(X),
     Result = neg_infinity, 
     !.
 
 extended_real_division(pos_infinity, X, Result) :-
     extended_real(X),
-    X > 0,
+    pos_r(X),
     Result = pos_infinity, 
     !.
 
 extended_real_division(neg_infinity, X, Result) :-
     extended_real(X),
-    X < 0,
+    neg_r(X),
     Result = pos_infinity, 
     !.
 
 extended_real_division(neg_infinity, X, Result) :-
     extended_real(X),
-    X > 0,
+    pos_r(X),
     Result = neg_infinity, 
     !.
 
@@ -1130,6 +1140,7 @@ interval constructed according to the division table for two non empty intervals
 Y are instantiated extended reals, they are first transformed into singleton intervals.
 In all other cases the predicates fail.
 */
+
 % gestione delle variabili libere.
 idiv(X, _, _) :- 
     var(X),
@@ -1142,16 +1153,18 @@ idiv(_, Y, _) :-
 
 %%% manca da gestire gli intervalli Z, ovvero [0,0] (non presenti in tabella).
 %%% per ora facciamo così ma bisogna controllare se è corretto.
-idiv(_, [0, 0], nil) :- !.
+idiv(_, [0, 0], _) :- 
+    !, fail.
 
-idiv([0, 0], _, nil) :- !.
+idiv([0, 0], _, _) :- 
+    !, fail.
 
 % gestione I2 = M -> c<0 d>0
 idiv([0, B], [C, D], [Result1, Result2]) :- 
     itimes([0, B]),                          
     itimes([C, D]),
-    C < 0,                  % per gestire gli infiniti forse la cosa migliore è creare un predicato che verifica il segno
-    D > 0,                  % e gestisce correttamente +- infinito.
+    neg_r(C),                 
+    pos_r(D),                  % e gestisce correttamente +- infinito.
     Result1 = neg_infinity,
     Result2 = pos_infinity,
     !.
@@ -1159,8 +1172,8 @@ idiv([0, B], [C, D], [Result1, Result2]) :-
 idiv([A, 0], [C, D], [Result1, Result2]) :- 
     itimes([A, 0]),                          
     itimes([C, D]),
-    C < 0,
-    D > 0,
+    neg_r(C),
+    pos_r(D),
     Result1 = neg_infinity,
     Result2 = pos_infinity,
     !.
@@ -1168,10 +1181,10 @@ idiv([A, 0], [C, D], [Result1, Result2]) :-
 idiv([A, B], [C, D], [Result1, Result2]) :- 
     itimes([A, B]),                          
     itimes([C, D]),
-    C < 0,
-    D > 0,
-    A < 0,
-    B > 0,
+    neg_r(C),
+    pos_r(D),
+    neg_r(A),
+    pos_r(B),
     Result1 = neg_infinity,
     Result2 = pos_infinity,
     !.
@@ -1179,9 +1192,9 @@ idiv([A, B], [C, D], [Result1, Result2]) :-
 idiv([A, B], [C, D], [I1, I2]) :- 
     itimes([A, B]),                          
     itimes([C, D]),
-    C < 0,
-    D > 0,
-    A > 0,
+    neg_r(C),
+    pos_r(D),
+    pos_r(A),
     idiv([A, B], [C, 0], I1),
     idiv([A, B], [0, D], I2),
     !.
@@ -1189,9 +1202,9 @@ idiv([A, B], [C, D], [I1, I2]) :-
 idiv([A, B], [C, D], [I1, I2]) :- 
     itimes([A, B]),                          
     itimes([C, D]),
-    C < 0,
-    D > 0,
-    B < 0,
+    neg_r(C),
+    pos_r(D),
+    neg_r(B),
     idiv([A, B], [0, D], I1),
     idiv([A, B], [C, 0], I2),
     !.
@@ -1214,7 +1227,7 @@ idiv([A, B], [C, D], [Result1, Result2]) :-
 idiv([A, B], [0, D], [Result1, Result2]) :- 
     iplus([A, B]), 
     iplus([0, D]),
-    A >= 0,
+    pos_r(A),
     extended_real_division(A, D, S1),
     Result1 = S1,
     Result2 = pos_infinity,
@@ -1224,8 +1237,8 @@ idiv([A, B], [0, D], [Result1, Result2]) :-
 idiv([A, B], [0, D], [Result1, Result2]) :- 
     iplus([A, B]), 
     iplus([0, D]),
-    A < 0,
-    B > 0,
+    neg_r(A),
+    pos_r(B),
     Result1 = neg_infinity,
     Result2 = pos_infinity,
     !.
@@ -1234,7 +1247,7 @@ idiv([A, B], [0, D], [Result1, Result2]) :-
 idiv([A, B], [0, D], [Result1, Result2]) :- 
     iplus([A, B]), 
     iplus([0, D]),
-    B =< 0,
+    neg_r(B),
     extended_real_division(B, D, S1),
     Result1 = neg_infinity,
     Result2 = S1,
@@ -1244,7 +1257,7 @@ idiv([A, B], [0, D], [Result1, Result2]) :-
 idiv([A, B], [C, 0], [Result1, Result2]) :- 
     iplus([A, B]), 
     iplus([C, 0]),
-    A >= 0,
+    pos_r(A),
     extended_real_division(A, C, S1),
     Result1 = neg_infinity,
     Result2 = S1,
@@ -1254,8 +1267,8 @@ idiv([A, B], [C, 0], [Result1, Result2]) :-
 idiv([A, B], [C, 0], [Result1, Result2]) :- 
     iplus([A, B]), 
     iplus([C, 0]),
-    A < 0,
-    B > 0,
+    neg_r(A),
+    pos_r(B),
     Result1 = neg_infinity,
     Result2 = pos_infinity,
     !.
@@ -1265,7 +1278,7 @@ idiv([A, B], [C, 0], [Result1, Result2]) :-
 idiv([A, B], [C, 0], [Result1, Result2]) :- 
     iplus([A, B]), 
     iplus([C, 0]),
-    B =< 0,
+    neg_r(B),
     extended_real_division(B, C, S1),
     Result1 = S1,
     Result2 = pos_infinity,
