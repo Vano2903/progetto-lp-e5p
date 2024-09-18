@@ -18,13 +18,15 @@ extended_real(X) :-
     number(X).
 
 % negative real
+neg_r(pos_infinity) :- !, fail.
 neg_r(neg_infinity) :- !.
 neg_r(X) :- 
     extended_real(X), 
-    X =< 0,
+    X =< 0, 
     !.
 
 % positive real
+pos_r(neg_infinity) :- !, fail.
 pos_r(pos_infinity) :- !.
 pos_r(X) :- 
     extended_real(X), 
@@ -1159,70 +1161,6 @@ idiv(_, [0, 0], _) :-
 idiv([0, 0], _, _) :- 
     !, fail.
 
-% gestione I2 = M -> c<0 d>0
-idiv([0, B], [C, D], [Result1, Result2]) :- 
-    itimes([0, B]),                          
-    itimes([C, D]),
-    neg_r(C),                 
-    pos_r(D),                  % e gestisce correttamente +- infinito.
-    Result1 = neg_infinity,
-    Result2 = pos_infinity,
-    !.
-
-idiv([A, 0], [C, D], [Result1, Result2]) :- 
-    itimes([A, 0]),                          
-    itimes([C, D]),
-    neg_r(C),
-    pos_r(D),
-    Result1 = neg_infinity,
-    Result2 = pos_infinity,
-    !.
-
-idiv([A, B], [C, D], [Result1, Result2]) :- 
-    itimes([A, B]),                          
-    itimes([C, D]),
-    neg_r(C),
-    pos_r(D),
-    neg_r(A),
-    pos_r(B),
-    Result1 = neg_infinity,
-    Result2 = pos_infinity,
-    !.
-
-idiv([A, B], [C, D], [I1, I2]) :- 
-    itimes([A, B]),                          
-    itimes([C, D]),
-    neg_r(C),
-    pos_r(D),
-    pos_r(A),
-    idiv([A, B], [C, 0], I1),
-    idiv([A, B], [0, D], I2),
-    !.
-
-idiv([A, B], [C, D], [I1, I2]) :- 
-    itimes([A, B]),                          
-    itimes([C, D]),
-    neg_r(C),
-    pos_r(D),
-    neg_r(B),
-    idiv([A, B], [0, D], I1),
-    idiv([A, B], [C, 0], I2),
-    !.
-
-% caso "base".
-idiv([A, B], [C, D], [Result1, Result2]) :- 
-    itimes([A, B]),                          
-    itimes([C, D]),
-    extended_real_division(A, C, S1),
-    extended_real_division(A, D, S2),
-    extended_real_division(B, C, S3),
-    extended_real_division(B, D, S4),
-    extended_real_min_list([S1, S2, S3, S4], Min),
-    extended_real_max_list([S1, S2, S3, S4], Max),
-    Result1 = Min,
-    Result2 = Max,
-    !.
-
 % gestione eccezione C = 0, P1/P e P0/P.
 idiv([A, B], [0, D], [Result1, Result2]) :- 
     iplus([A, B]), 
@@ -1284,6 +1222,142 @@ idiv([A, B], [C, 0], [Result1, Result2]) :-
     Result2 = pos_infinity,
     !.
 
+
+% gestione Id = M -> c<0 d>0
+
+%In = p0
+idiv([0, B], [C, D], [Result1, Result2]) :- 
+    itimes([0, B]),                          
+    itimes([C, D]),
+    neg_r(C),                 
+    pos_r(D),                  % e gestisce correttamente +- infinito.
+    Result1 = neg_infinity,
+    Result2 = pos_infinity,
+    !.
+
+%In = n0
+idiv([A, 0], [C, D], [Result1, Result2]) :- 
+    itimes([A, 0]),                          
+    itimes([C, D]),
+    neg_r(C),
+    pos_r(D),
+    Result1 = neg_infinity,
+    Result2 = pos_infinity,
+    !.
+
+%In = M
+idiv([A, B], [C, D], [Result1, Result2]) :- 
+    itimes([A, B]),                          
+    itimes([C, D]),
+    neg_r(C),
+    pos_r(D),
+    neg_r(A),
+    pos_r(B),
+    Result1 = neg_infinity,
+    Result2 = pos_infinity,
+    !.
+
+%In = P1
+idiv([A, B], [C, D], [I1, I2]) :- 
+    itimes([A, B]),                          
+    itimes([C, D]),
+    neg_r(C),
+    pos_r(D),
+    pos_r(A),
+    idiv([A, B], [C, 0], I1),
+    idiv([A, B], [0, D], I2),
+    !.
+
+%In = N1
+idiv([A, B], [C, D], [I1, I2]) :- 
+    itimes([A, B]),                          
+    itimes([C, D]),
+    neg_r(C),
+    pos_r(D),
+    neg_r(B),
+    idiv([A, B], [0, D], I1),
+    idiv([A, B], [C, 0], I2),
+    !.
+
+%Intervalli infiniti (ID = P)
+
+% In = P
+idiv([A, pos_infinity], [C, pos_infinity], [Result1, Result2]) :- 
+    pos_r(A),
+    pos_r(C),
+    extended_real_division(A, pos_infinity, S1),
+    extended_real_division(pos_infinity, C, S3),
+    Result1 = S1,
+    Result2 = S3,
+    !.
+
+% In = M
+idiv([neg_infinity, B], [C, pos_infinity], [Result1, Result2]) :- 
+    pos_r(B),
+    pos_r(C),
+    extended_real_division(neg_infinity, C, S1),
+    extended_real_division(B, C, S3),
+    Result1 = S1,
+    Result2 = S3,
+    !.
+
+% In = N
+idiv([neg_infinity, B], [C, pos_infinity], [Result1, Result2]) :- 
+    neg_r(B),
+    pos_r(C),
+    extended_real_division(neg_infinity, C, S1),
+    extended_real_division(B, pos_infinity, S4),
+    Result1 = S1,
+    Result2 = S4,
+    !.
+
+%Intervalli infiniti (ID = N)
+% In = P
+idiv([A, pos_infinity], [neg_infinity, D], [Result1, Result2]) :- 
+    pos_r(A),
+    neg_r(D),
+    extended_real_division(pos_infinity, D, S1),
+    extended_real_division(A, neg_infinity, S3),
+    Result1 = S1,
+    Result2 = S3,
+    !.
+
+% In = M
+/*idiv([neg_infinity, B], [neg_infinity, D], [Result1, Result2]) :- 
+    pos_r(B),
+    neg_r(D),
+    extended_real_division(B, D, S1),
+    extended_real_division(neg_infinity, pos_infinity, S3), % qui fa fail
+    Result1 = S1,
+    Result2 = S3,
+    !.
+*/
+% In = N
+idiv([neg_infinity, B], [neg_infinity, D], [Result1, Result2]) :- 
+    neg_r(B),
+    neg_r(D),
+    extended_real_division(B, neg_infinity, S1),
+    extended_real_division(neg_infinity, D, S4),
+    Result1 = S1,
+    Result2 = S4,
+    !.
+
+% caso "base".
+idiv([A, B], [C, D], [Result1, Result2]) :- 
+    itimes([A, B]),                          
+    itimes([C, D]),
+    extended_real_division(A, C, S1),
+    extended_real_division(A, D, S2),
+    extended_real_division(B, C, S3),
+    extended_real_division(B, D, S4),
+    extended_real_min_list([S1, S2, S3, S4], Min),
+    extended_real_max_list([S1, S2, S3, S4], Max),
+    Result1 = Min,
+    Result2 = Max,
+    !.
+
+
+
 idiv(X, [C, D], [Result1, Result2]) :- % X in SI
     number(X),
     interval(X, SI),
@@ -1296,4 +1370,5 @@ idiv([A, B], Y, [Result1, Result2]) :- % Y in SI
     idiv([A, B], SI, [Result1, Result2]),
     !.
 
+idiv(_, _ , _) :- !, fail.
 %%%% end of file -- intar.pl --
