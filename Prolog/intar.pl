@@ -17,23 +17,6 @@ extended_real(neg_infinity).
 extended_real(X) :- 
     number(X).
 
-% negative real
-neg_r(pos_infinity) :- !, fail.
-neg_r(neg_infinity) :- !.
-neg_r(X) :- 
-    extended_real(X), 
-    X =< 0, 
-    !.
-
-% positive real
-pos_r(neg_infinity) :- !, fail.
-pos_r(pos_infinity) :- !.
-pos_r(X) :- 
-    extended_real(X), 
-    X >= 0,
-    !.
-
-
 % logica aritmetica.
 
 % gestione delle variabili libere.
@@ -127,45 +110,45 @@ extended_real_multiplication(pos_infinity, pos_infinity, pos_infinity) :- !.
 extended_real_multiplication(neg_infinity, neg_infinity, pos_infinity) :- !.
 
 extended_real_multiplication(pos_infinity, X, Result) :-
-    neg_r(X),
+    er_min(X, 0, X),
     Result = neg_infinity, 
     !.
 
 extended_real_multiplication(pos_infinity, X, Result) :-
-    pos_r(X),
+    er_max(X, 0, X),
     Result = pos_infinity, 
     !.
 
 extended_real_multiplication(neg_infinity, X, Result) :-
-    neg_r(X),
+    er_min(X, 0, X),
     Result = pos_infinity, 
     !.
 
 extended_real_multiplication(neg_infinity, X, Result) :-
-    pos_r(X),
+    er_max(X, 0, X),
     Result = neg_infinity, 
     !.
 
 extended_real_multiplication(X, pos_infinity, Result) :-
-    neg_r(X),
+    er_min(X, 0, X),
     Result = neg_infinity, 
     !.
 
 extended_real_multiplication(X, pos_infinity, Result) :-
     extended_real(X),
-    pos_r(X),
+    er_max(X, 0, X),
     Result = pos_infinity, 
     !.
 
 extended_real_multiplication(X, neg_infinity, Result) :-
     extended_real(X),
-    neg_r(X),
+    er_min(X, 0, X),
     Result = pos_infinity, 
     !.
 
 extended_real_multiplication(X, neg_infinity, Result) :-
     extended_real(X),
-    pos_r(X),
+    er_max(X, 0, X),
     Result = neg_infinity, 
     !.
 
@@ -203,25 +186,25 @@ extended_real_division(pos_infinity, neg_infinity, _) :-
 
 extended_real_division(pos_infinity, X, Result) :-
     extended_real(X),
-    neg_r(X),
+    er_min(X, 0, X),
     Result = neg_infinity, 
     !.
 
 extended_real_division(pos_infinity, X, Result) :-
     extended_real(X),
-    pos_r(X),
+    er_max(X, 0, X),
     Result = pos_infinity, 
     !.
 
 extended_real_division(neg_infinity, X, Result) :-
     extended_real(X),
-    neg_r(X),
+    er_min(X, 0, X),
     Result = pos_infinity, 
     !.
 
 extended_real_division(neg_infinity, X, Result) :-
     extended_real(X),
-    pos_r(X),
+    er_max(X, 0, X),
     Result = neg_infinity, 
     !.
 
@@ -323,26 +306,37 @@ extended_real_min_list([X | Xs], Min) :-
     !.
 
 % calcolo del minimo su reali estesi.
+/*
 er_min(nil, _, _) :- 
     !, fail.
 
 er_min(_, nil, _) :- 
     !, fail.
+*/
 
 er_min(X, pos_infinity, X) :- 
-    number(X).
+    number(X), !.
 
-er_min(_, neg_infinity, neg_infinity).
+er_min(pos_infinity, X, X) :- 
+    number(X), !.
 
-er_min(neg_infinity, _, neg_infinity).
+er_min(_, neg_infinity, neg_infinity) :- 
+    !.
+
+er_min(neg_infinity, _, neg_infinity) :- 
+    !.
 
 er_min(X, MinXs, X) :- 
     number(X), 
-    X =< MinXs.
+    number(MinXs),
+    X =< MinXs,
+    !.
 
 er_min(X, MinXs, MinXs) :- 
     number(X), 
-    X > MinXs.
+    number(MinXs),
+    X > MinXs,
+    !.
 
 % gestione intervallo vuoto.
 extended_real_max_list([], _) :- 
@@ -361,7 +355,8 @@ extended_real_max_list([X | _], _) :-
 % Caso base numero.
 extended_real_max_list([X], X) :-
     nonvar(X),
-    extended_real(X), !.
+    extended_real(X), 
+    !.
 
 % caso base pos_infinity.
 extended_real_max_list([pos_infinity], pos_infinity).
@@ -382,26 +377,37 @@ extended_real_max_list([X | Xs], Max) :-
     !.
 
 % calcolo del massimo su reali estesi.
+/*
 er_max(nil, _, _) :- 
     !, fail.
 
 er_max(_, nil, _) :- 
     !, fail.
+*/
 
 er_max(X, neg_infinity, X) :- 
-    number(X).
+    number(X), !.  
 
-er_max(_, pos_infinity, pos_infinity).
+er_max(neg_infinity, X, X) :-
+    number(X), !.
 
-er_max(pos_infinity, _, pos_infinity).
+er_max(_, pos_infinity, pos_infinity) :- 
+    !.
+
+er_max(pos_infinity, _, pos_infinity) :- 
+    !.
 
 er_max(X, MaxXs, X) :- 
-    number(X), 
-    X > MaxXs.
+    number(X),
+    number(MaxXs), 
+    X >= MaxXs,
+    !.
 
 er_max(X, MaxXs, MaxXs) :- 
-    number(X), 
-    X =< MaxXs.
+    number(X),
+    number(MaxXs), 
+    X < MaxXs,
+    !.
 
 % fine logica intervallare.
 
@@ -663,20 +669,10 @@ is_interval([_, neg_infinity]) :-
 
 is_interval([]) :- !.
 
-is_interval([neg_infinity, pos_infinity]) :- !.
-
-is_interval([neg_infinity, H]) :- 
-    extended_real(H),
-    !.
-
-is_interval([L, pos_infinity]) :-
-    extended_real(L),
-    !.
-
 is_interval([L, H]) :- 
     extended_real(L),
     extended_real(H),
-    L =< H,
+    er_min(L, H, L),
     !.
 
 % gestione intervalli disgiunti.
@@ -686,7 +682,7 @@ is_interval([I1, I2]) :-
     is_interval(I2),
     isup(I1, H1),
     iinf(I2, L2),
-    H1 =< L2,   % o forse solo < ???
+    er_min(H1,L2,H1),  % o forse solo < ???
     !.
 
 % The predicate whole interval/1 is true if R is a term representing the whole interval R.
@@ -738,16 +734,8 @@ icontains(X, _) :-
     extended_real(X),
     !, fail.
 
-icontains(_, [neg_infinity, neg_infinity]) :- 
-    !, fail.
-
-icontains(_, [pos_infinity, pos_infinity]) :- 
-    !, fail.
-
-icontains([neg_infinity, neg_infinity], _) :- 
-    !, fail.
-
-icontains([pos_infinity, pos_infinity], _) :- 
+icontains(_, X) :- 
+    var(X), 
     !, fail.
 
 % gestione intervalli disgiunti.
@@ -755,119 +743,31 @@ icontains([I1, I2], X) :-
     is_interval([I1, I2]),
     icontains(I1, X),
     !.
-
+                                % non gestisce se entrambi disgiunti
 icontains([I1, I2], X) :- 
     is_interval([I1, I2]),
     icontains(I2, X),
     !.
 
-% intervalli uguali
-icontains(I, I) :-
-    is_interval(I), 
+% reale esteso
+icontains([L, H], X) :- 
+    is_interval([L, H]),
+    extended_real(X),
+    er_min(L, X, L),
+    er_max(H, X, H),
     !.
 
-% singleton
-icontains(I, X) :-
-    extended_real(X),   
-    is_singleton(I),    
-    iinf(I, X),
-    !.
-
-% intervalli con infinito
-icontains([neg_infinity, pos_infinity], X) :- 
-    extended_real(X), 
-    !.
-
-icontains([neg_infinity, pos_infinity], I) :- 
-    is_interval(I), 
-    !.
-
-icontains([neg_infinity, H], neg_infinity) :- 
-    extended_real(H), 
-    !.           
-
-icontains([L, pos_infinity], pos_infinity) :- 
-    extended_real(L), 
-    !.          
-
-icontains([neg_infinity, H], X) :-
-    number(X),
-    number(H),      
-    X =< H, 
-    !.
-
-icontains([neg_infinity, H], I2) :-
-    is_interval(I2),
-    number(H),  
-    isup(I2, H2),
-    number(H2),        
-    H >= H2, 
-    !.
-
-icontains([L, pos_infinity], X) :-
-    number(X),
-    number(L),      
-    X >= L, 
-    !.
-
-icontains([L, pos_infinity], I2) :-
-    is_interval(I2),
-    number(L),
-    iinf(I2, L2),
-    number(L2),     
-    L =< L2, 
-    !.
-
-% intervalli finiti
-icontains(I, X) :-
-    is_interval(I),
-    number(X),
-    iinf(I, L),
-    number(L),
-    isup(I, H),
-    number(H),
-    X >= L,
-    X =< H, 
-    !.
-
-icontains(I, I2) :-
-    is_interval(I),
-    is_interval(I2),
-    iinf(I, L1),
-    number(L1),
-    isup(I, H1),
-    number(H1),
-    iinf(I2, L2),
-    number(L2),
-    isup(I2, H2),
-    number(H2),
-    L1 =< L2,
-    H1 >= H2, 
+% intervallo
+icontains([L1, H1], [L2, H2]) :- 
+    is_interval([L1, H1]),
+    is_interval([L2, H2]),
+    er_min(L1, L2, L1),
+    er_max(H1, H2, H1),
     !.
 
 /* The predicate ioverlap succeeds if the two intervals I1 and I2 “overlap”. The predicate fails
 if either I1 or I2 is not an interval.
-*/ 
-
-% fail cases
-ioverlap([neg_infinity, neg_infinity], _) :- 
-    !, fail.   
-
-ioverlap([pos_infinity, pos_infinity], _) :- 
-    !, fail.
-
-ioverlap([pos_infinity, neg_infinity], _) :- 
-    !, fail.
-
-ioverlap(_, [neg_infinity, neg_infinity]) :- 
-    !, fail.
-
-ioverlap(_, [pos_infinity, pos_infinity]) :- 
-    !, fail.
-
-ioverlap(_, [pos_infinity, neg_infinity]) :- 
-    !, fail.
-
+*/
 % gestione intervalli disgiunti. 
 ioverlap([I1, I2], X) :- 
     is_interval([I1, I2]),
@@ -881,68 +781,12 @@ ioverlap([I1, I2], X) :-
     ioverlap(I2, X),
     !.
 
-% intervalli uguali
-ioverlap(I, I2) :-
-    icontains(I, I2), !.
-
-% whole interval always overlap
-ioverlap(I1, [neg_infinity, pos_infinity]) :- 
-    is_interval(I1), 
+ioverlap([L1, H1], [L2, H2]) :- 
+    is_interval([L1, H1]),
+    is_interval([L2, H2]),
+    er_min(L1, H2, L1),
+    er_max(H1, L2, H1),
     !.
-
-ioverlap([neg_infinity, pos_infinity], I2) :- 
-    is_interval(I2), 
-    !.
-
-% I1 infinito I2 infinito
-ioverlap([neg_infinity, _], [neg_infinity, _]) :- !.
-
-ioverlap([_, pos_infinity], [_, pos_infinity]) :- !.
-
-% I1 finito I2 infinito
-ioverlap(I1, [neg_infinity, H2]) :-
-    is_interval(I1), 
-    iinf(I1, L1),
-    L1 =< H2,
-    !.
-
-ioverlap(I1, [L2, pos_infinity]) :-
-    is_interval(I1), 
-    isup(I1, H1),
-    H1 >= L2,
-    !.
-
-% I1 infinito I2 intervallo finito
-ioverlap([neg_infinity, H1], I2) :- 
-    is_interval(I2), 
-    iinf(I2, L2),
-    H1 >= L2,
-    !.
-
-ioverlap([L1, pos_infinity], I2) :- 
-    is_interval(I2), 
-    isup(I2, H2),
-    L1 =< H2,
-    !.
-
-%% intervalli finiti
-ioverlap(I1, I2) :-
-    is_interval(I1),
-    is_interval(I2),
-    iinf(I1, L1),    
-    number(L1),           
-    isup(I1, H1),
-    number(H1),
-    iinf(I2, L2),
-    number(L2),
-    isup(I2, H2),
-    number(H2),
-    L1 =< H2, 
-    H1 >= L2, 
-    !.
-
-% end of interval construction
-
 
 /* Interval Arithmetic Predicates. The following predicates implement the interval arithmetic
 operations.
@@ -952,8 +796,7 @@ operations.
 iplus([]) :- !, fail.
 
 iplus(ZI) :- 
-    !, is_interval(ZI). % is_interval controlla già i casi con infinito non validi quindi non serve fare altri controlli.
-
+    !, is_interval(ZI).
 /*
 The predicate iplus/2 is true if X is an instantiated non empty interval and R unifies with it,
 or if X is an instantiated extended real and R is a singleton interval containing only X.
@@ -966,7 +809,7 @@ iplus(X, _) :-
 % fine gestione delle variabili libere.
 
 iplus(X, R) :- 
-    iplus(X), % vverifica se intervallo + se non vuoto
+    iplus(X),
     R = X,
     !.
 iplus(X, R) :-                  %%%  ?- iplus(10, [10,X]).  X = 10. da correggere? leggere README
@@ -975,8 +818,6 @@ iplus(X, R) :-                  %%%  ?- iplus(10, [10,X]).  X = 10. da corregger
     iinf(R, L1),
     X = L1, 
     !.
-
-% iplus(_, _) :- fail.
 
 /* 
 The predicate iplus/3 is true if X and Y are instantiated non empty intervals and R is the
@@ -987,7 +828,7 @@ In all other cases the predicates fail.
 
 % somma intervalli
 iplus([L1, H1], [L2, H2], [Result1, Result2]) :- 
-    iplus([L1, H1]), % no [], verifica pure se sono extended real
+    iplus([L1, H1]), 
     iplus([L2, H2]),
     extended_real_sum(L1, L2, Result1),
     extended_real_sum(H1, H2, Result2),
@@ -1023,7 +864,7 @@ iminus(X, R) :-
 
 % intervalli finiti
 iminus([L1, H1], R) :- 
-    iplus([L1, H1]), % verifica non empty interval.
+    iplus([L1, H1]), 
     minus_reciprocal(L1, L2),  
     minus_reciprocal(H1, H2),
     R = [H2, L2],
@@ -1038,7 +879,7 @@ In all other cases the predicates fail.
 
 % differenza intervalli finiti
 iminus([L1, H1], [L2, H2], [Result1, Result2]) :- 
-    iplus([L1, H1]), % no [], verifica pure se sono extended real
+    iplus([L1, H1]), 
     iplus([L2, H2]),
     extended_real_subtraction(L1, H2, Result1), % [a-d, b-c]
     extended_real_subtraction(H1, L2, Result2),
@@ -1061,9 +902,6 @@ itimes(ZI):- !, is_interval(ZI).
 
 /* The predicate itimes/2 is true if X is an instantiated non empty interval and R unifies with it,
 or if X is an instantiated extended real and R is a singleton interval containing only X. */
-
-
-%warning itimes/2 = iplus/2 secondo me errore di trascrizione
 itimes(X, _) :- 
     var(X),
     !, fail.
@@ -1165,7 +1003,7 @@ idiv([0, 0], _, _) :-
 idiv([A, B], [0, D], [Result1, Result2]) :- 
     iplus([A, B]), 
     iplus([0, D]),
-    pos_r(A),
+    er_max(A, 0, A),
     extended_real_division(A, D, S1),
     Result1 = S1,
     Result2 = pos_infinity,
@@ -1175,8 +1013,8 @@ idiv([A, B], [0, D], [Result1, Result2]) :-
 idiv([A, B], [0, D], [Result1, Result2]) :- 
     iplus([A, B]), 
     iplus([0, D]),
-    neg_r(A),
-    pos_r(B),
+    er_min(A, 0, A),
+    er_max(B, 0, B),
     Result1 = neg_infinity,
     Result2 = pos_infinity,
     !.
@@ -1185,7 +1023,7 @@ idiv([A, B], [0, D], [Result1, Result2]) :-
 idiv([A, B], [0, D], [Result1, Result2]) :- 
     iplus([A, B]), 
     iplus([0, D]),
-    neg_r(B),
+    er_min(B, 0, B),
     extended_real_division(B, D, S1),
     Result1 = neg_infinity,
     Result2 = S1,
@@ -1195,7 +1033,7 @@ idiv([A, B], [0, D], [Result1, Result2]) :-
 idiv([A, B], [C, 0], [Result1, Result2]) :- 
     iplus([A, B]), 
     iplus([C, 0]),
-    pos_r(A),
+    er_max(A, 0, A),
     extended_real_division(A, C, S1),
     Result1 = neg_infinity,
     Result2 = S1,
@@ -1205,8 +1043,8 @@ idiv([A, B], [C, 0], [Result1, Result2]) :-
 idiv([A, B], [C, 0], [Result1, Result2]) :- 
     iplus([A, B]), 
     iplus([C, 0]),
-    neg_r(A),
-    pos_r(B),
+    er_min(A, 0, A),
+    er_max(B, 0, B),
     Result1 = neg_infinity,
     Result2 = pos_infinity,
     !.
@@ -1216,7 +1054,7 @@ idiv([A, B], [C, 0], [Result1, Result2]) :-
 idiv([A, B], [C, 0], [Result1, Result2]) :- 
     iplus([A, B]), 
     iplus([C, 0]),
-    neg_r(B),
+    er_min(B, 0, B),
     extended_real_division(B, C, S1),
     Result1 = S1,
     Result2 = pos_infinity,
@@ -1225,66 +1063,66 @@ idiv([A, B], [C, 0], [Result1, Result2]) :-
 
 % gestione Id = M -> c<0 d>0
 
-%In = p0
+% In = p0
 idiv([0, B], [C, D], [Result1, Result2]) :- 
     itimes([0, B]),                          
     itimes([C, D]),
-    neg_r(C),                 
-    pos_r(D),                  % e gestisce correttamente +- infinito.
+    er_min(C, 0, C),                 
+    er_max(D, 0, D),                  
     Result1 = neg_infinity,
     Result2 = pos_infinity,
     !.
 
-%In = n0
+% In = n0
 idiv([A, 0], [C, D], [Result1, Result2]) :- 
     itimes([A, 0]),                          
     itimes([C, D]),
-    neg_r(C),
-    pos_r(D),
+    er_min(C, 0, C),
+    er_max(D, 0, D),
     Result1 = neg_infinity,
     Result2 = pos_infinity,
     !.
 
-%In = M
+% In = M
 idiv([A, B], [C, D], [Result1, Result2]) :- 
     itimes([A, B]),                          
     itimes([C, D]),
-    neg_r(C),
-    pos_r(D),
-    neg_r(A),
-    pos_r(B),
+    er_min(C, 0, C),
+    er_max(D, 0, D),
+    er_min(A, 0, A),
+    er_max(B, 0, B),
     Result1 = neg_infinity,
     Result2 = pos_infinity,
     !.
 
-%In = P1
+% In = P1
 idiv([A, B], [C, D], [I1, I2]) :- 
     itimes([A, B]),                          
     itimes([C, D]),
-    neg_r(C),
-    pos_r(D),
-    pos_r(A),
+    er_min(C, 0, C),
+    er_max(D, 0, D),
+    er_max(A, 0, A),
     idiv([A, B], [C, 0], I1),
     idiv([A, B], [0, D], I2),
     !.
 
-%In = N1
+% In = N1
 idiv([A, B], [C, D], [I1, I2]) :- 
     itimes([A, B]),                          
     itimes([C, D]),
-    neg_r(C),
-    pos_r(D),
-    neg_r(B),
+    er_min(C, 0, C),
+    er_max(D, 0, D),
+    er_min(B, 0, B),
     idiv([A, B], [0, D], I1),
     idiv([A, B], [C, 0], I2),
     !.
 
-%Intervalli infiniti (ID = P)
+% Intervalli infiniti (ID = P)
 
 % In = P
 idiv([A, pos_infinity], [C, pos_infinity], [Result1, Result2]) :- 
-    pos_r(A),
-    pos_r(C),
+    er_max(A, 0, A),
+    er_max(C, 0, C),
     extended_real_division(A, pos_infinity, S1),
     extended_real_division(pos_infinity, C, S3),
     Result1 = S1,
@@ -1293,8 +1131,8 @@ idiv([A, pos_infinity], [C, pos_infinity], [Result1, Result2]) :-
 
 % In = M
 idiv([neg_infinity, B], [C, pos_infinity], [Result1, Result2]) :- 
-    pos_r(B),
-    pos_r(C),
+    er_max(B, 0, B),
+    er_max(C, 0, C),
     extended_real_division(neg_infinity, C, S1),
     extended_real_division(B, C, S3),
     Result1 = S1,
@@ -1303,19 +1141,19 @@ idiv([neg_infinity, B], [C, pos_infinity], [Result1, Result2]) :-
 
 % In = N
 idiv([neg_infinity, B], [C, pos_infinity], [Result1, Result2]) :- 
-    neg_r(B),
-    pos_r(C),
+    er_min(B, 0, B),
+    er_max(C, 0, C),
     extended_real_division(neg_infinity, C, S1),
     extended_real_division(B, pos_infinity, S4),
     Result1 = S1,
     Result2 = S4,
     !.
 
-%Intervalli infiniti (ID = N)
+% Intervalli infiniti (ID = N)
 % In = P
 idiv([A, pos_infinity], [neg_infinity, D], [Result1, Result2]) :- 
-    pos_r(A),
-    neg_r(D),
+    er_max(A, 0, A),
+    er_min(D, 0, D),
     extended_real_division(pos_infinity, D, S1),
     extended_real_division(A, neg_infinity, S3),
     Result1 = S1,
@@ -1323,9 +1161,9 @@ idiv([A, pos_infinity], [neg_infinity, D], [Result1, Result2]) :-
     !.
 
 % In = M
-/*idiv([neg_infinity, B], [neg_infinity, D], [Result1, Result2]) :- 
-    pos_r(B),
-    neg_r(D),
+/* idiv([neg_infinity, B], [neg_infinity, D], [Result1, Result2]) :- 
+    er_max(B, 0, B),
+    er_min(D, 0, D),
     extended_real_division(B, D, S1),
     extended_real_division(neg_infinity, pos_infinity, S3), % qui fa fail
     Result1 = S1,
@@ -1334,8 +1172,8 @@ idiv([A, pos_infinity], [neg_infinity, D], [Result1, Result2]) :-
 */
 % In = N
 idiv([neg_infinity, B], [neg_infinity, D], [Result1, Result2]) :- 
-    neg_r(B),
-    neg_r(D),
+    er_min(B, 0, B),
+    er_min(D, 0, D),
     extended_real_division(B, neg_infinity, S1),
     extended_real_division(neg_infinity, D, S4),
     Result1 = S1,
@@ -1355,8 +1193,6 @@ idiv([A, B], [C, D], [Result1, Result2]) :-
     Result1 = Min,
     Result2 = Max,
     !.
-
-
 
 idiv(X, [C, D], [Result1, Result2]) :- % X in SI
     number(X),
