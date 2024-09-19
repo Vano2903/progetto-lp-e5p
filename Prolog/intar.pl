@@ -7,9 +7,6 @@
 
 
 % definizione di reale esteso.
-
-% extended_real(infinity).        
-
 extended_real(pos_infinity).
 
 extended_real(neg_infinity).
@@ -17,232 +14,280 @@ extended_real(neg_infinity).
 extended_real(X) :- 
     number(X).
 
-% logica aritmetica.
+% predicati aritmetici.
 
+% The plus e/1 predicate is true with the unit of the summation operation.
+plus_e(0).
+
+/* The plus e/2 predicate is true when Result is an extended real that unifies with X. X must be
+instantiated and must be an extended real. Otherwise the predicate fails. 
+*/
 % gestione delle variabili libere.
-extended_real_sum(X, _, _) :- 
+plus_e(X, _) :- 
+    var(X),
+    !, fail.
+
+plus_e(X, Result) :- 
+    extended_real(X),
+    Result = X, !.
+
+/* The plus e/3 predicate is true when Result is the extended real sum of X and Y, which must
+both be instantiated extended reals. Otherwise the predicate fails.
+*/
+% gestione delle variabili libere.
+plus_e(X, _, _) :- 
     var(X), 
     !, fail.
 
-extended_real_sum(_, Y, _) :-
+plus_e(_, Y, _) :-
     var(Y), 
     !, fail.
-% fine gestione delle variabili libere.
 
-extended_real_sum(pos_infinity, neg_infinity, _) :- 
+plus_e(pos_infinity, neg_infinity, _) :- 
     !, fail.
 
-extended_real_sum(neg_infinity, pos_infinity, _) :- 
+plus_e(neg_infinity, pos_infinity, _) :- 
     !, fail.
 
-extended_real_sum(pos_infinity, _, pos_infinity):- !.
+plus_e(pos_infinity, _, pos_infinity):- !.
 
-extended_real_sum(neg_infinity, _, neg_infinity):- !.
+plus_e(neg_infinity, _, neg_infinity):- !.
 
-extended_real_sum(_, pos_infinity, pos_infinity):- !.
+plus_e(_, pos_infinity, pos_infinity):- !.
 
-extended_real_sum(_, neg_infinity, neg_infinity):- !.
+plus_e(_, neg_infinity, neg_infinity):- !.
 
-extended_real_sum(X, Y, Result) :- 
+plus_e(X, Y, Result) :- 
     extended_real(X), 
     extended_real(Y), 
     Result is X + Y, 
     !.
 
+/* The minus e/2 predicate is true when Result is an extended real that is the reciprocal of X with
+respect to summation. X must be instantiated and must be an extended real. Otherwise the
+predicate fails. 
+*/
 % gestione delle variabili libere.
-extended_real_subtraction(X, _, _) :-
+minus_e(X, _) :- 
     var(X), 
     !, fail.
 
-extended_real_subtraction(_, Y, _) :-
+minus_e(pos_infinity, _) :- 
+    !, fail.
+
+minus_e(neg_infinity, _) :-
+    !, fail.
+
+minus_e(X, Result) :- 
+    extended_real(X), 
+    Result is - X, !.
+
+
+/* The minus e/3 predicate is true when Result is the extended real subtraction of Y from X, which
+must both be instantiated extended reals. Otherwise the predicate fails.
+*/
+% gestione delle variabili libere.
+minus_e(X, _, _) :-
+    var(X), 
+    !, fail.
+
+minus_e(_, Y, _) :-
     var(Y), 
     !, fail.
-% fine gestione delle variabili libere.
 
-extended_real_subtraction(neg_infinity, neg_infinity, _) :- 
+minus_e(neg_infinity, neg_infinity, _) :- 
     !, fail.
 
-extended_real_subtraction(pos_infinity, pos_infinity, _) :-
+minus_e(pos_infinity, pos_infinity, _) :-
     !, fail.
 
-extended_real_subtraction(pos_infinity, _, pos_infinity):- !.
+minus_e(pos_infinity, _, pos_infinity):- !.
 
-extended_real_subtraction(neg_infinity, _, neg_infinity):- !.
+minus_e(neg_infinity, _, neg_infinity):- !.
 
-extended_real_subtraction(_, pos_infinity, neg_infinity):- !.
+minus_e(_, pos_infinity, neg_infinity):- !.
 
-extended_real_subtraction(_, neg_infinity, pos_infinity):- !.
+minus_e(_, neg_infinity, pos_infinity):- !.
 
-extended_real_subtraction(X, Y, Result) :- 
+minus_e(X, Y, Result) :- 
     extended_real(X), 
     extended_real(Y),
     Result is X - Y, 
     !.
 
+% The times e/1 predicate is true with the unit of the summation operation.
+times_e(1).
+
+/* The times e/2 predicate is true when Result is an extended real that unifies with X. X must be
+instantiated and must be an extended real. Otherwise the predicate fails.
+*/
+/*
 % gestione delle variabili libere.
-extended_real_multiplication(X, _, _) :-
+
+times_e(X, _) :- 
+    var(X),
+    !, fail.
+
+times_e(X, Result):- 
+    extended_real(X),
+    Result = X, !.
+*/
+
+times_e(X, Y) :- 
+    plus_e(X, Y), !.
+
+/* The times e/3 predicate is true when Result is the extended real multiplication of X and Y,
+which must both be instantiated extended reals. Otherwise the predicate fails.
+*/
+% gestione delle variabili libere.
+times_e(X, _, _) :-
     var(X), 
     !, fail.
 
-extended_real_multiplication(_, Y, _) :-
+times_e(_, Y, _) :-
     var(Y), 
     !, fail.
-% fine gestione delle variabili libere.
 
-extended_real_multiplication(pos_infinity, 0, _) :- 
+times_e(pos_infinity, 0, _) :- 
     !, fail.
 
-extended_real_multiplication(0, pos_infinity, _) :-
+times_e(0, pos_infinity, _) :-
     !, fail.
 
-extended_real_multiplication(neg_infinity, 0, _) :- 
+times_e(neg_infinity, 0, _) :- 
     !, fail.
 
-extended_real_multiplication(0, neg_infinity, _) :- 
+times_e(0, neg_infinity, _) :- 
     !, fail.
 
-extended_real_multiplication(pos_infinity, neg_infinity, neg_infinity) :- !.
+times_e(pos_infinity, neg_infinity, neg_infinity) :- !.
 
-extended_real_multiplication(neg_infinity, pos_infinity, neg_infinity) :- !.
+times_e(neg_infinity, pos_infinity, neg_infinity) :- !.
 
-extended_real_multiplication(pos_infinity, pos_infinity, pos_infinity) :- !.
+times_e(pos_infinity, pos_infinity, pos_infinity) :- !.
 
-extended_real_multiplication(neg_infinity, neg_infinity, pos_infinity) :- !.
+times_e(neg_infinity, neg_infinity, pos_infinity) :- !.
 
-extended_real_multiplication(pos_infinity, X, neg_infinity) :-
+times_e(pos_infinity, X, neg_infinity) :-
     er_min(X, 0, X),
     !.
 
-extended_real_multiplication(pos_infinity, X, pos_infinity) :-
+times_e(pos_infinity, X, pos_infinity) :-
     er_max(X, 0, X),
     !.
 
-extended_real_multiplication(neg_infinity, X, pos_infinity) :-
+times_e(neg_infinity, X, pos_infinity) :-
     er_min(X, 0, X),
     !.
 
-extended_real_multiplication(neg_infinity, X, neg_infinity) :-
+times_e(neg_infinity, X, neg_infinity) :-
     er_max(X, 0, X),
     !.
 
-extended_real_multiplication(X, pos_infinity, neg_infinity) :-
+times_e(X, pos_infinity, neg_infinity) :-
     er_min(X, 0, X),
     !.
 
-extended_real_multiplication(X, pos_infinity, pos_infinity) :-
+times_e(X, pos_infinity, pos_infinity) :-
     er_max(X, 0, X),
     !.
 
-extended_real_multiplication(X, neg_infinity, pos_infinity) :-
+times_e(X, neg_infinity, pos_infinity) :-
     er_min(X, 0, X),
     !.
 
-extended_real_multiplication(X, neg_infinity, neg_infinity) :-
+times_e(X, neg_infinity, neg_infinity) :-
     er_max(X, 0, X),
     !.
 
-extended_real_multiplication(X, Y, Result) :- 
+times_e(X, Y, Result) :- 
     extended_real(X), 
     extended_real(Y), 
     Result is X * Y.
 
+/* The div e/2 predicate is true when Result is an extended real that is the reciprocal of X with
+respect to multiplication. X must be instantiated and must be an extended real. Otherwise the
+predicate fails.
+*/
 % gestione delle variabili libere.
-extended_real_division(X, _, _) :-
+div_e(X, _) :-
     var(X), 
     !, fail.
 
-extended_real_division(_, Y, _) :-
+div_e(pos_infinity, _) :- 
+    !, fail.
+
+div_e(neg_infinity, _) :- 
+    !, fail.
+
+div_e(0, _) :- 
+    !, fail.
+
+div_e(X, Result) :-
+    extended_real(X),
+    Result is 1 / X, !.
+
+/* The div e/3 predicate is true when Result is the extended real subtraction of Y from X, which
+must both be instantiated extended reals. Otherwise the predicate fails.
+*/
+% gestione delle variabili libere.
+div_e(X, _, _) :-
+    var(X), 
+    !, fail.
+
+div_e(_, Y, _) :-
     var(Y), 
     !, fail.
-% fine gestione delle variabili libere.
 
-extended_real_division(_, 0, _) :- 
+div_e(_, 0, _) :- 
     !, fail.
 
-extended_real_division(0, _, 0):- !.
+div_e(0, _, 0):- !.
 
-extended_real_division(neg_infinity, neg_infinity, _) :- 
+div_e(neg_infinity, neg_infinity, _) :- 
     !, fail.
 
-extended_real_division(neg_infinity, pos_infinity, _) :- 
+div_e(neg_infinity, pos_infinity, _) :- 
     !, fail.
 
-extended_real_division(pos_infinity, pos_infinity, _) :-
+div_e(pos_infinity, pos_infinity, _) :-
     !, fail.
 
-extended_real_division(pos_infinity, neg_infinity, _) :- 
+div_e(pos_infinity, neg_infinity, _) :- 
     !, fail.
 
-extended_real_division(pos_infinity, X, neg_infinity) :-
+div_e(pos_infinity, X, neg_infinity) :-
     er_min(X, 0, X),
     !.
 
-extended_real_division(pos_infinity, X, pos_infinity) :-
+div_e(pos_infinity, X, pos_infinity) :-
     er_max(X, 0, X),
     !.
 
-extended_real_division(neg_infinity, X, pos_infinity) :-
+div_e(neg_infinity, X, pos_infinity) :-
     er_min(X, 0, X),
     !.
 
-extended_real_division(neg_infinity, X, neg_infinity) :-
+div_e(neg_infinity, X, neg_infinity) :-
     er_max(X, 0, X),
     !.
 
-extended_real_division(X, pos_infinity, 0) :- 
+div_e(X, pos_infinity, 0) :- 
     extended_real(X), 
     !.
 
-extended_real_division(X, neg_infinity, 0) :- 
+div_e(X, neg_infinity, 0) :- 
     extended_real(X), 
     !.
 
-extended_real_division(X, Y, Result) :-
+div_e(X, Y, Result) :-
     extended_real(X),
     extended_real(Y),
     Result is X / Y.
 
-% gestione delle variabili libere.
-minus_reciprocal(X, _) :- 
-    var(X), 
-    !, fail.
-% fine gestione delle variabili libere.
-
-minus_reciprocal(pos_infinity, _) :- 
-    !, fail.
-
-minus_reciprocal(neg_infinity, _) :-
-    !, fail.
-
-minus_reciprocal(X, Result) :- 
-    extended_real(X), 
-    Result is - X.
-
-% gestione delle variabili libere.
-div_reciprocal(X, _) :-
-    var(X), 
-    !, fail.
-% fine gestione delle variabili libere.
-
-div_reciprocal(pos_infinity, _) :- 
-    !, fail.
-
-div_reciprocal(neg_infinity, _) :- 
-    !, fail.
-
-div_reciprocal(0, _) :- 
-    !, fail.
-
-div_reciprocal(X, Result) :-
-    extended_real(X),
-    Result is 1 / X.
-
-% fine logica aritmetica.
-
-
+% fine predicati aritmetici.
 
 % logica intervallare.
-
 % gestione intervallo vuoto.
 extended_real_min_list([], _) :- 
     !, fail.
@@ -255,7 +300,6 @@ extended_real_min_list([X], _) :-
 extended_real_min_list([X | _], _) :-
     var(X),
     !, fail.
-% fine gestione delle variabili libere.
 
 % Caso base numero.
 extended_real_min_list([X], X) :-
@@ -279,15 +323,19 @@ extended_real_min_list([X | Xs], Min) :-
     !.
 
 % calcolo del minimo.
+er_min(X, X, X) :- 
+    extended_real(X), !.
 er_min(X, pos_infinity, X) :- 
     number(X), !.
 
 er_min(pos_infinity, X, X) :- 
     number(X), !.
 
-er_min(_, neg_infinity, neg_infinity) :-  !.
+er_min(X, neg_infinity, neg_infinity) :-  
+    extended_real(X), !.
 
-er_min(neg_infinity, _, neg_infinity) :- !.
+er_min(neg_infinity, X, neg_infinity) :- 
+    extended_real(X), !.
 
 er_min(X, MinXs, X) :- 
     number(X), 
@@ -313,7 +361,6 @@ extended_real_max_list([X], _) :-
 extended_real_max_list([X | _], _) :-
     var(X),
     !, fail.
-% fine gestione delle variabili libere.
 
 % Caso base numero.
 extended_real_max_list([X], X) :-
@@ -338,17 +385,19 @@ extended_real_max_list([X | Xs], Max) :-
     !.
 
 % calcolo del massimo.
+er_max(X, X, X) :- 
+    extended_real(X), !.
 er_max(X, neg_infinity, X) :- 
     number(X), !.  
 
 er_max(neg_infinity, X, X) :-
     number(X), !.
 
-er_max(_, pos_infinity, pos_infinity) :- 
-    !.
+er_max(X, pos_infinity, pos_infinity) :- 
+    extended_real(X), !.
 
-er_max(pos_infinity, _, pos_infinity) :- 
-    !.
+er_max(pos_infinity, X, pos_infinity) :- 
+    extended_real(X), !.
 
 er_max(X, MaxXs, X) :- 
     number(X),
@@ -364,141 +413,9 @@ er_max(X, MaxXs, MaxXs) :-
 
 % fine logica intervallare.
 
-
-
-% predicati aritmetici.
-
-% The plus e/1 predicate is true with the unit of the summation operation.
-plus_e(0).
-
-/* The plus e/2 predicate is true when Result is an extended real that unifies with X. X must be
-instantiated and must be an extended real. Otherwise the predicate fails. 
-*/
-% gestione delle variabili libere.
-plus_e(X, _) :- 
-    var(X),
-    !, fail.
-% fine gestione delle variabili libere.
-
-plus_e(X, Result) :- 
-    extended_real(X),
-    Result = X.
-
-/* The plus e/3 predicate is true when Result is the extended real sum of X and Y, which must
-both be instantiated extended reals. Otherwise the predicate fails.
-*/
-% gestione delle variabili libere.
-plus_e(X, _, _) :- 
-    var(X),
-    !, fail.
-
-plus_e(_, Y, _) :-
-    var(Y),
-    !, fail.
-% fine gestione delle variabili libere.
-
-plus_e(X, Y, Result) :- 
-    extended_real_sum(X, Y, Result).
-
-/* The minus e/2 predicate is true when Result is an extended real that is the reciprocal of X with
-respect to summation. X must be instantiated and must be an extended real. Otherwise the
-predicate fails. 
-*/
-% gestione delle variabili libere.
-minus_e(X, _) :- 
-    var(X),
-    !, fail.
-% fine gestione delle variabili libere.
-
-minus_e(X, Result) :- 
-    minus_reciprocal(X, Result).
-
-/* The minus e/3 predicate is true when Result is the extended real subtraction of Y from X, which
-must both be instantiated extended reals. Otherwise the predicate fails.
-*/
-% gestione delle variabili libere.
-minus_e(X, _, _) :- 
-    var(X),
-    !, fail.
-
-minus_e(_, Y, _) :-
-    var(Y),
-    !, fail.
-% fine gestione delle variabili libere.
-
-minus_e(X, Y, Result) :- 
-   extended_real_subtraction(X, Y, Result).
-
-% The times e/1 predicate is true with the unit of the summation operation.
-times_e(1).
-
-/* The times e/2 predicate is true when Result is an extended real that unifies with X. X must be
-instantiated and must be an extended real. Otherwise the predicate fails.
-*/
-% gestione delle variabili libere.
-times_e(X, _) :- 
-    var(X),
-    !, fail.
-% fine gestione delle variabili libere.
-
-times_e(X, Result):- 
-    extended_real(X),
-    Result = X.
-
-/* The times e/3 predicate is true when Result is the extended real multiplication of X and Y,
-which must both be instantiated extended reals. Otherwise the predicate fails.
-*/
-% gestione delle variabili libere.
-times_e(X, _, _) :- 
-    var(X),
-    !, fail.
-
-times_e(_, Y, _) :-
-    var(Y),
-    !, fail.
-% fine gestione delle variabili libere.
-
-times_e(X, Y, Result) :- 
-    extended_real_multiplication(X, Y, Result).
-
-/* The div e/2 predicate is true when Result is an extended real that is the reciprocal of X with
-respect to multiplication. X must be instantiated and must be an extended real. Otherwise the
-predicate fails.
-*/
-% gestione delle variabili libere.
-div_e(X, _) :- 
-    var(X),
-    !, fail.
-% fine gestione delle variabili libere.
-
-div_e(X, Result) :- 
-    div_reciprocal(X, Result).
-
-/* The div e/3 predicate is true when Result is the extended real subtraction of Y from X, which
-must both be instantiated extended reals. Otherwise the predicate fails.
-*/
-% gestione delle variabili libere.
-div_e(X, _, _) :- 
-    var(X),
-    !, fail.
-
-div_e(_, Y, _) :-
-    var(Y),
-    !, fail.
-% fine gestione delle variabili libere.
-
-div_e(X, Y, Result) :-
-    extended_real_division(X, Y, Result).
-
-% fine predicati aritmetici.
-
-
-
 /* Interval Construction and Other Predicates. The following predicates are the basis for
 the interval arithmetic operations.
 */
-
-
 
 % This predicate is true only of the empty interval [].
 empty_interval([]).
@@ -764,8 +681,8 @@ In all other cases the predicates fail.
 iplus([L1, H1], [L2, H2], [Result1, Result2]) :- 
     iplus([L1, H1]), 
     iplus([L2, H2]),
-    extended_real_sum(L1, L2, Result1),
-    extended_real_sum(H1, H2, Result2),
+    plus_e(L1, L2, Result1),
+    plus_e(H1, H2, Result2),
     !.
 
 % somma reale ed intervallo
@@ -807,8 +724,8 @@ iminus(X, R) :-
 % intervalli finiti
 iminus([L1, H1], R) :- 
     iplus([L1, H1]), 
-    minus_reciprocal(L1, L2),  
-    minus_reciprocal(H1, H2),
+    minus_e(L1, L2),  
+    minus_e(H1, H2),
     R = [H2, L2],
     iplus(R),
     !.
@@ -823,8 +740,8 @@ In all other cases the predicates fail.
 iminus([L1, H1], [L2, H2], [Result1, Result2]) :- 
     iplus([L1, H1]), 
     iplus([L2, H2]),
-    extended_real_subtraction(L1, H2, Result1), % [a-d, b-c]
-    extended_real_subtraction(H1, L2, Result2),
+    minus_e(L1, H2, Result1), % [a-d, b-c]
+    minus_e(H1, L2, Result2),
     !.
 
 % X or Y extended real
@@ -873,10 +790,10 @@ In all other cases the predicates fail.
 itimes([L1, H1], [L2, H2], [Result1, Result2]) :- 
     itimes([L1, H1]), 
     itimes([L2, H2]),
-    extended_real_multiplication(L1, L2, S1),
-    extended_real_multiplication(L1, H2, S2),
-    extended_real_multiplication(H1, L2, S3),
-    extended_real_multiplication(H1, H2, S4),
+    times_e(L1, L2, S1),
+    times_e(L1, H2, S2),
+    times_e(H1, L2, S3),
+    times_e(H1, H2, S4),
     extended_real_min_list([S1, S2, S3, S4], Min),
     extended_real_max_list([S1, S2, S3, S4], Max),
     Result1 = Min,
@@ -920,9 +837,9 @@ idiv(X, R) :-
 
 % intervalli finiti
 idiv([L1, H1], R) :- 
-    itimes([L1, H1]), .
-    div_reciprocal(L1, L2),  
-    div_reciprocal(H1, H2),
+    itimes([L1, H1]), 
+    div_e(L1, L2),  
+    div_e(H1, H2),
     R = [H2, L2], % controllare 
     iplus(R),
     !.
@@ -961,7 +878,7 @@ idiv([A, B], [0, D], [Result1, Result2]) :-
     itimes([A, B]), 
     itimes([0, D]),
     er_max(A, 0, A),
-    extended_real_division(A, D, S1),
+    div_e(A, D, S1),
     Result1 = S1,
     Result2 = pos_infinity,
     !.
@@ -981,7 +898,7 @@ idiv([A, B], [0, D], [Result1, Result2]) :-
     itimes([A, B]), 
     itimes([0, D]),
     er_min(B, 0, B),
-    extended_real_division(B, D, S1),
+    div_e(B, D, S1),
     Result1 = neg_infinity,
     Result2 = S1,
     !.
@@ -991,7 +908,7 @@ idiv([A, B], [C, 0], [Result1, Result2]) :-
     itimes([A, B]), 
     itimes([C, 0]),
     er_max(A, 0, A),
-    extended_real_division(A, C, S1),
+    div_e(A, C, S1),
     Result1 = neg_infinity,
     Result2 = S1,
     !.
@@ -1012,7 +929,7 @@ idiv([A, B], [C, 0], [Result1, Result2]) :-
     itimes([A, B]), 
     itimes([C, 0]),
     er_min(B, 0, B),
-    extended_real_division(B, C, S1),
+    div_e(B, C, S1),
     Result1 = S1,
     Result2 = pos_infinity,
     !.
@@ -1080,8 +997,8 @@ idiv([A, B], [C, D], [I1, I2]) :-
 idiv([A, pos_infinity], [C, pos_infinity], [Result1, Result2]) :- 
     er_max(A, 0, A),
     er_max(C, 0, C),
-    extended_real_division(A, pos_infinity, S1),
-    extended_real_division(pos_infinity, C, S3),
+    div_e(A, pos_infinity, S1),
+    div_e(pos_infinity, C, S3),
     Result1 = S1,
     Result2 = S3,
     !.
@@ -1090,8 +1007,8 @@ idiv([A, pos_infinity], [C, pos_infinity], [Result1, Result2]) :-
 idiv([neg_infinity, B], [C, pos_infinity], [Result1, Result2]) :- 
     er_max(B, 0, B),
     er_max(C, 0, C),
-    extended_real_division(neg_infinity, C, S1),
-    extended_real_division(B, C, S3),
+    div_e(neg_infinity, C, S1),
+    div_e(B, C, S3),
     Result1 = S1,
     Result2 = S3,
     !.
@@ -1100,8 +1017,8 @@ idiv([neg_infinity, B], [C, pos_infinity], [Result1, Result2]) :-
 idiv([neg_infinity, B], [C, pos_infinity], [Result1, Result2]) :- 
     er_min(B, 0, B),
     er_max(C, 0, C),
-    extended_real_division(neg_infinity, C, S1),
-    extended_real_division(B, pos_infinity, S4),
+    div_e(neg_infinity, C, S1),
+    div_e(B, pos_infinity, S4),
     Result1 = S1,
     Result2 = S4,
     !.
@@ -1111,8 +1028,8 @@ idiv([neg_infinity, B], [C, pos_infinity], [Result1, Result2]) :-
 idiv([A, pos_infinity], [neg_infinity, D], [Result1, Result2]) :- 
     er_max(A, 0, A),
     er_min(D, 0, D),
-    extended_real_division(pos_infinity, D, S1),
-    extended_real_division(A, neg_infinity, S3),
+    div_e(pos_infinity, D, S1),
+    div_e(A, neg_infinity, S3),
     Result1 = S1,
     Result2 = S3,
     !.
@@ -1121,8 +1038,8 @@ idiv([A, pos_infinity], [neg_infinity, D], [Result1, Result2]) :-
 /* idiv([neg_infinity, B], [neg_infinity, D], [Result1, Result2]) :- 
     er_max(B, 0, B),
     er_min(D, 0, D),
-    extended_real_division(B, D, S1),
-    extended_real_division(neg_infinity, pos_infinity, S3), % qui fa fail
+    div_e(B, D, S1),
+    div_e(neg_infinity, pos_infinity, S3), % qui fa fail
     Result1 = S1,
     Result2 = S3,
     !.
@@ -1131,8 +1048,8 @@ idiv([A, pos_infinity], [neg_infinity, D], [Result1, Result2]) :-
 idiv([neg_infinity, B], [neg_infinity, D], [Result1, Result2]) :- 
     er_min(B, 0, B),
     er_min(D, 0, D),
-    extended_real_division(B, neg_infinity, S1),
-    extended_real_division(neg_infinity, D, S4),
+    div_e(B, neg_infinity, S1),
+    div_e(neg_infinity, D, S4),
     Result1 = S1,
     Result2 = S4,
     !.
@@ -1141,10 +1058,10 @@ idiv([neg_infinity, B], [neg_infinity, D], [Result1, Result2]) :-
 idiv([A, B], [C, D], [Result1, Result2]) :- 
     itimes([A, B]),                          
     itimes([C, D]),
-    extended_real_division(A, C, S1),
-    extended_real_division(A, D, S2),
-    extended_real_division(B, C, S3),
-    extended_real_division(B, D, S4),
+    div_e(A, C, S1),
+    div_e(A, D, S2),
+    div_e(B, C, S3),
+    div_e(B, D, S4),
     extended_real_min_list([S1, S2, S3, S4], Min),
     extended_real_max_list([S1, S2, S3, S4], Max),
     Result1 = Min,
