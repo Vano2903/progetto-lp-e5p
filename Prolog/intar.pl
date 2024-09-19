@@ -870,6 +870,15 @@ idiv([A, B], [0, D], [Result1, Result2]) :-
     Result1 = S1,
     Result2 = pos_infinity,
     !.
+% gestione eccezione C = 0, N1/P e N0/P.
+idiv([A, B], [0, D], [Result1, Result2]) :- 
+    itimes([A, B]), 
+    itimes([0, D]),
+    er_min(B, 0, B),
+    div_e(B, D, S1),
+    Result1 = neg_infinity,
+    Result2 = S1,
+    !.
 
 % gestione eccezione C = 0, M/P.
 idiv([A, B], [0, D], [Result1, Result2]) :- 
@@ -879,16 +888,6 @@ idiv([A, B], [0, D], [Result1, Result2]) :-
     er_max(B, 0, B),
     Result1 = neg_infinity,
     Result2 = pos_infinity,
-    !.
-
-% gestione eccezione C = 0, N1/P e N0/P.
-idiv([A, B], [0, D], [Result1, Result2]) :- 
-    itimes([A, B]), 
-    itimes([0, D]),
-    er_min(B, 0, B),
-    div_e(B, D, S1),
-    Result1 = neg_infinity,
-    Result2 = S1,
     !.
 
 % gestione eccezione D = 0, P1/N e P0/N.
@@ -901,6 +900,16 @@ idiv([A, B], [C, 0], [Result1, Result2]) :-
     Result2 = S1,
     !.
 
+% gestione eccezione D = 0, N1/N e N0/N.
+idiv([A, B], [C, 0], [Result1, Result2]) :- 
+    itimes([A, B]), 
+    itimes([C, 0]),
+    er_min(B, 0, B),
+    div_e(B, C, S1),
+    Result1 = S1,
+    Result2 = pos_infinity,
+    !.
+
 % gestione eccezione D = 0, M/N.
 idiv([A, B], [C, 0], [Result1, Result2]) :- 
     itimes([A, B]), 
@@ -911,16 +920,6 @@ idiv([A, B], [C, 0], [Result1, Result2]) :-
     Result2 = pos_infinity,
     !.
 
-% gestione eccezione D = 0, N1/N e N0/N.
-
-idiv([A, B], [C, 0], [Result1, Result2]) :- 
-    itimes([A, B]), 
-    itimes([C, 0]),
-    er_min(B, 0, B),
-    div_e(B, C, S1),
-    Result1 = S1,
-    Result2 = pos_infinity,
-    !.
 
 
 % gestione Id = M -> c<0 d>0
