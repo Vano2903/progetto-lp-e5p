@@ -121,18 +121,6 @@ times_e(1).
 /* The times e/2 predicate is true when Result is an extended real that unifies with X. X must be
 instantiated and must be an extended real. Otherwise the predicate fails.
 */
-/*
-% gestione delle variabili libere.
-
-times_e(X, _) :- 
-    var(X),
-    !, fail.
-
-times_e(X, Result):- 
-    extended_real(X),
-    Result = X, !.
-*/
-
 times_e(X, Y) :- 
     plus_e(X, Y), !.
 

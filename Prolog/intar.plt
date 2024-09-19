@@ -32,6 +32,8 @@ test('plus_e/2') :-
 test('plus_e_fail/3', fail) :-
     plus_e(a, _, _).
 test('plus_e_fail/3', fail) :-
+    plus_e(_, a, _).
+test('plus_e_fail/3', fail) :-
     plus_e(_, 1, _).
 test('plus_e_fail/3', fail) :-
     plus_e(1, _, _).
@@ -75,12 +77,30 @@ test('minus_e/2') :-
 
 % minus_e/3 
 test('minus_e_fail/3', fail) :-
+    minus_e(a, _, _).
+test('minus_e_fail/3', fail) :-
+    minus_e(_, a, _).
+test('minus_e_fail/3', fail) :-
+    minus_e(_, 1, _).
+test('minus_e_fail/3', fail) :-
+    minus_e(1, _, _).
+test('minus_e_fail/3', fail) :-
+    minus_e(2, 0, 0.11111).
+test('minus_e_fail/3', fail) :-
     minus_e(pos_infinity, pos_infinity, _).
 test('minus_e_fail/3', fail) :-
     minus_e(neg_infinity, neg_infinity, _).
-test('minus_e_fail/3', fail) :-
-    minus_e(a, _, _).
-
+test('minus_e/3') :-
+    random(A),
+    random(B),
+    C is (A - B),
+    minus_e(A, B, C).
+test('minus_e/3') :-
+    random(A),
+    minus_e(neg_infinity, A, neg_infinity).
+test('minus_e/3') :-
+    random(A),
+    minus_e(A, pos_infinity, neg_infinity).
 
 % times_e/2
 test('times_e_fail/2', fail) :-
@@ -99,7 +119,48 @@ test('times_e/2') :-
 
 % times_e/3 
 test('times_e_fail/3', fail) :-
+    times_e(a, _, _).
+test('times_e_fail/3', fail) :-
+    times_e(_, a, _).
+test('times_e_fail/3', fail) :-
+    times_e(_, 1, _).
+test('times_e_fail/3', fail) :-
+    times_e(1, _, _).
+test('times_e_fail/3', fail) :-
+    times_e(1, 2, 1.9999).
+test('times_e_fail/3', fail) :-
+    times_e(pos_infinity, 0, _).
+test('times_e_fail/3', fail) :-
+    times_e(0, pos_infinity, _).
+test('times_e_fail/3', fail) :-
+    times_e(neg_infinity, 0, _).
+test('times_e_fail/3', fail) :-
     times_e(0, neg_infinity, _).
+test('times_e/3') :-
+    random(A),
+    random(B),
+    C is (A * B),
+    times_e(A, B, C).
+test('times_e/3') :-
+    times_e(neg_infinity, 10, neg_infinity).
+test('times_e/3') :-
+    times_e(10, neg_infinity, neg_infinity).
+test('times_e/3') :-
+    times_e(pos_infinity, 10, pos_infinity).
+test('times_e/3') :-
+    times_e(10, pos_infinity, pos_infinity).
+test('times_e/3') :-
+    times_e(neg_infinity, -10, pos_infinity).
+test('times_e/3') :-
+    times_e(pos_infinity, -10, neg_infinity).
+test('times_e/3') :-
+    times_e(-10, pos_infinity, neg_infinity).
+test('times_e/3') :-
+    times_e(-10, neg_infinity, pos_infinity).
+test('times_e/3') :-
+    times_e(neg_infinity, neg_infinity, pos_infinity).
+test('times_e/3') :-
+    times_e(pos_infinity, pos_infinity, pos_infinity).
 
 % div_e/2 
 test('div_e_fail/2', fail) :-
@@ -116,6 +177,59 @@ test('div_e/2') :-
     random(A),
     B is 1 / A,
     div_e(A, B).
+
+% div_e/3
+test('div_e_fail/3', fail) :-
+    div_e(a, _, _).
+test('div_e_fail/3', fail) :-
+    div_e(_, 1, _).
+test('div_e_fail/3', fail) :-
+    div_e(1, _, _).
+test('div_e_fail/3', fail) :-
+    div_e(2, 2, 0.999999).
+test('div_e_fail/3', fail) :-
+    div_e(pos_infinity, pos_infinity, _).
+test('div_e_fail/3', fail) :-
+    div_e(neg_infinity, neg_infinity, _).
+test('div_e_fail/3', fail) :-
+    div_e(pos_infinity, neg_infinity, _).
+test('div_e_fail/3', fail) :-
+    div_e(neg_infinity, pos_infinity, _).
+test('div_e_fail/3', fail) :-
+    div_e(neg_infinity, 0, _).
+test('div_e_fail/3', fail) :-
+    div_e(pos_infinity, 0, _).
+test('div_e_fail/3', fail) :-
+    div_e(0, 0, _).
+test('div_e_fail/3', fail) :-
+    random(A),
+    div_e(A, 0, _).
+test('div_e/3') :-
+    random(A),
+    random(B),
+    C is (A / B),
+    div_e(A, B, C).
+test('div_e/3') :-
+    div_e(neg_infinity, 10, neg_infinity).
+test('div_e/3') :-
+    div_e(pos_infinity, 10, pos_infinity).
+test('div_e/3') :-
+    random(A),
+    div_e(A, neg_infinity, 0).
+test('div_e/3') :-
+    random(A),
+    div_e(A, pos_infinity, 0).
+test('div_e/3') :-
+    div_e(neg_infinity, -10, pos_infinity).
+test('div_e/3') :-
+    div_e(pos_infinity, -10, neg_infinity).
+test('div_e/3') :-  
+    div_e(0, pos_infinity, 0).
+test('div_e/3') :-
+    div_e(0, neg_infinity, 0).
+test('div_e/3') :-
+    random(A),
+    div_e(0, A, 0).
 
 % er_min
 test(er_min_fail, fail) :-
