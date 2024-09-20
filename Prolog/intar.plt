@@ -632,6 +632,19 @@ test('idiv/2_fail', fail) :-
     idiv([], _).
 
 % idiv/3
+
+% [0,0] / I
+test('idiv/3_case_0_i') :- 
+    idiv([0, 0], [1, 2], [0, 0]),
+    idiv([0, 0], [1, pos_infinity], [0, 0]),
+    idiv([0, 0], [neg_infinity, 2], [0, 0]),
+    idiv([0, 0], [neg_infinity, pos_infinity], [0, 0]).
+% I / [0,0]
+test('idiv/3_case_i_0', fail) :- 
+    idiv([1, 2], [0, 0], _),
+    idiv([1, pos_infinity], [0, 0], _),
+    idiv([neg_infinity, 2], [0, 0], _),
+    idiv([neg_infinity, pos_infinity], [0, 0], _).
 % 1 CASO P1 P
 test('idiv/3_case_p1_p') :- 
     idiv([1, 4], [1, 2], [0.5, 4]),
@@ -713,7 +726,8 @@ test('idiv/3_case_n1_p_exception') :-
     idiv([neg_infinity, -4], [0, 2], [neg_infinity, -2]),
     idiv([neg_infinity, -10], [0, pos_infinity], [neg_infinity, 0]).
 test('idiv/3_case_n1_p_fail', fail) :-
-    idiv([neg_infinity, neg_infinity], [0, pos_infinity], _).%overflow
+   idiv([neg_infinity, neg_infinity], [0, pos_infinity], _).
+
 % INTERVALLI DISGIUNTI
 % 6 CASO P1 M
 test('idiv/3_case_p1_m') :- 
@@ -765,7 +779,7 @@ test('idiv/3_case_p1_n_exception') :-
 test('idiv/3_case_p1_n', fail) :- 
     idiv([pos_infinity, pos_infinity], [neg_infinity, neg_infinity], _).
 test('idiv/3_case_p1_n', fail) :- 
-    idiv([pos_infinity, pos_infinity], [neg_infinity, 0], _).%overflow
+    idiv([pos_infinity, pos_infinity], [neg_infinity, 0], _).
 
 % 12 CASO P0 N
 test('idiv/3_case_p0_n') :- 
@@ -803,7 +817,5 @@ test('idiv/3_case_n1_n') :-
 % Eccezione: Divisione per zero
 test('idiv/3_case_n1_n_exception') :- 
     idiv([-2, -1], [-2, 0], [0.5, pos_infinity]).
-
-
 
 :- end_tests(intar).

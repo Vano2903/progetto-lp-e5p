@@ -856,67 +856,68 @@ idiv(_, Y, _) :-
 idiv(_, [0, 0], _) :- 
     !, fail.
 
-idiv([0, 0], _, _) :- 
-    !, fail.
+idiv([0, 0], _, [0, 0]) :- 
+    !.
 
 % gestione eccezione C = 0, P1/P e P0/P.
 idiv([A, B], [0, D], [Result1, Result2]) :- 
+    er_max(A, 0, A),
     itimes([A, B]), 
     itimes([0, D]),
-    er_max(A, 0, A),
     div_e(A, D, S1),
     Result1 = S1,
     Result2 = pos_infinity,
     !.
+
 % gestione eccezione C = 0, N1/P e N0/P.
 idiv([A, B], [0, D], [Result1, Result2]) :- 
+    er_min(B, 0, B),
     itimes([A, B]), 
     itimes([0, D]),
-    er_min(B, 0, B),
+    !,
     div_e(B, D, S1),
     Result1 = neg_infinity,
-    Result2 = S1,
-    !.
+    Result2 = S1.
 
 % gestione eccezione C = 0, M/P.
 idiv([A, B], [0, D], [Result1, Result2]) :- 
-    itimes([A, B]), 
-    itimes([0, D]),
     er_min(A, 0, A),
     er_max(B, 0, B),
+    itimes([A, B]), 
+    itimes([0, D]),
+    !,
     Result1 = neg_infinity,
-    Result2 = pos_infinity,
-    !.
+    Result2 = pos_infinity.
 
 % gestione eccezione D = 0, P1/N e P0/N.
 idiv([A, B], [C, 0], [Result1, Result2]) :- 
+    er_max(A, 0, A),
     itimes([A, B]), 
     itimes([C, 0]),
-    er_max(A, 0, A),
+    !,
     div_e(A, C, S1),
     Result1 = neg_infinity,
-    Result2 = S1,
-    !.
+    Result2 = S1.
 
 % gestione eccezione D = 0, N1/N e N0/N.
 idiv([A, B], [C, 0], [Result1, Result2]) :- 
+    er_min(B, 0, B),
     itimes([A, B]), 
     itimes([C, 0]),
-    er_min(B, 0, B),
+    !,
     div_e(B, C, S1),
     Result1 = S1,
-    Result2 = pos_infinity,
-    !.
+    Result2 = pos_infinity.
 
 % gestione eccezione D = 0, M/N.
 idiv([A, B], [C, 0], [Result1, Result2]) :- 
-    itimes([A, B]), 
-    itimes([C, 0]),
     er_min(A, 0, A),
     er_max(B, 0, B),
+    itimes([A, B]), 
+    itimes([C, 0]),
+    !,
     Result1 = neg_infinity,
-    Result2 = pos_infinity,
-    !.
+    Result2 = pos_infinity.
 
 
 
@@ -924,57 +925,57 @@ idiv([A, B], [C, 0], [Result1, Result2]) :-
 
 % In = p0
 idiv([0, B], [C, D], [Result1, Result2]) :- 
-    itimes([0, B]),                          
-    itimes([C, D]),
     er_min(C, 0, C),                 
-    er_max(D, 0, D),                  
+    er_max(D, 0, D),
+    itimes([0, B]),                          
+    itimes([C, D]),   
+    !,             
     Result1 = neg_infinity,
-    Result2 = pos_infinity,
-    !.
+    Result2 = pos_infinity.
 
 % In = n0
 idiv([A, 0], [C, D], [Result1, Result2]) :- 
-    itimes([A, 0]),                          
-    itimes([C, D]),
     er_min(C, 0, C),
     er_max(D, 0, D),
+    itimes([A, 0]),                          
+    itimes([C, D]),
+    !,
     Result1 = neg_infinity,
-    Result2 = pos_infinity,
-    !.
+    Result2 = pos_infinity.
 
 % In = M
 idiv([A, B], [C, D], [Result1, Result2]) :- 
-    itimes([A, B]),                          
-    itimes([C, D]),
     er_min(C, 0, C),
     er_max(D, 0, D),
     er_min(A, 0, A),
     er_max(B, 0, B),
+    itimes([A, B]),                          
+    itimes([C, D]),
+    !,
     Result1 = neg_infinity,
-    Result2 = pos_infinity,
-    !.
+    Result2 = pos_infinity.
 
 % In = P1
 idiv([A, B], [C, D], [I1, I2]) :- 
-    itimes([A, B]),                          
-    itimes([C, D]),
     er_min(C, 0, C),
     er_max(D, 0, D),
     er_max(A, 0, A),
+    itimes([A, B]),                          
+    itimes([C, D]),
+    !,
     idiv([A, B], [C, 0], I1),
-    idiv([A, B], [0, D], I2),
-    !.
+    idiv([A, B], [0, D], I2).
 
 % In = N1
 idiv([A, B], [C, D], [I1, I2]) :- 
-    itimes([A, B]),                          
-    itimes([C, D]),
     er_min(C, 0, C),
     er_max(D, 0, D),
     er_min(B, 0, B),
+    itimes([A, B]),                          
+    itimes([C, D]),
+    !,
     idiv([A, B], [0, D], I1),
-    idiv([A, B], [C, 0], I2),
-    !.
+    idiv([A, B], [C, 0], I2).
 
 % Intervalli infiniti (ID = P)
 
@@ -982,11 +983,11 @@ idiv([A, B], [C, D], [I1, I2]) :-
 idiv([A, pos_infinity], [C, pos_infinity], [Result1, Result2]) :- 
     er_max(A, 0, A),
     er_max(C, 0, C),
+    !,
     div_e(A, pos_infinity, S1),
     div_e(pos_infinity, C, S3),
     Result1 = S1,
-    Result2 = S3,
-    !.
+    Result2 = S3.
 
 % In = M
 idiv([neg_infinity, B], [C, pos_infinity], [Result1, Result2]) :- 
