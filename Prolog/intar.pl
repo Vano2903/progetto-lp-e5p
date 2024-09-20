@@ -421,10 +421,10 @@ interval(X, _) :-
 % fine gestione delle variabili libere.
 
 % gestione dell'infinito per i singleton.
-interval(neg_infinity, _) :- 
+/*interval(neg_infinity, _) :- 
     !, fail.
 interval(pos_infinity, _) :- 
-    !, fail.
+    !, fail.*/
 
 % creazione di un intervallo singleton.
 interval(X, SI) :- 
@@ -447,7 +447,7 @@ interval(_, H, _) :-
 
 % creazione di un intervallo singleton specificando 3 argomenti.
 interval(X, X, SI) :- 
-    !, interval(X, SI).
+    interval(X, SI), !.
 
 % creazione di un intervallo standard con infinito.
 interval(neg_infinity, H, I) :-
@@ -495,11 +495,9 @@ is_interval([_, Y]) :-
     !, fail.
 % fine gestione delle variabili libere.
 
-is_interval([neg_infinity, neg_infinity]) :- 
-    !, fail.
+is_interval([neg_infinity, neg_infinity]) :- !.
 
-is_interval([pos_infinity, pos_infinity]) :- 
-    !, fail.
+is_interval([pos_infinity, pos_infinity]) :- !.
 
 is_interval([pos_infinity, _]) :- 
     !, fail.

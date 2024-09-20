@@ -350,70 +350,53 @@ test(empty_interval) :-
 
 % interval/2
 % Test con numero reale positivo
-test('interval/2_positive_singleton') :- 
-    interval(5, [5, 5]).
-% Test con numero reale negativo
-test('interval/2_negative_singleton') :- 
-    interval(-3, [-3, -3]).
-% Test con 0
-test('interval/2_zero_singleton') :- 
-    interval(0, [0, 0]).
+test('interval/2_singleton') :- 
+    interval(5, [5, 5]),
+    interval(-3, [-3, -3]),
+    interval(0, [0, 0]),
+    interval(neg_infinity, [neg_infinity, neg_infinity]),
+    interval(pos_infinity, [pos_infinity, pos_infinity]).
+
 % Test con fallimento su variabile libera (deve fallire)
 test('interval/2_fail_variable', fail) :- 
     interval(_, _).
 % Test con fallimento su match sbagliato
 test('interval/2_fail_wrong_match', fail) :- 
     interval(5, [6, 6]).
-% Test con fallimento su neg_infinity (deve fallire)
-test('interval/2_fail_neg_infinity', fail) :- 
-    interval(neg_infinity, _).
-
-% Test con fallimento su pos_infinity (deve fallire)
-test('interval/2_fail_pos_infinity', fail) :- 
-    interval(pos_infinity, _).
 
 
 % interval/3
 % Test con intervallo valido (inferiore e superiore uguali)
 test('interval/3_equal_bounds') :- 
-    interval(5, 5, [5, 5]).
-% Test con intervallo valido (inferiore minore del superiore)
-test('interval/3_valid_bounds') :- 
-    interval(-3, 2, [-3, 2]).
+    interval(5, 5, [5, 5]),
+    interval(-3, 2, [-3, 2]),
+    interval(neg_infinity, neg_infinity, [neg_infinity, neg_infinity]),
+    interval(pos_infinity, pos_infinity, [pos_infinity, pos_infinity]),
+    interval(neg_infinity, pos_infinity, [neg_infinity, pos_infinity]).
+
 % Test con intervallo vuoto (inferiore maggiore del superiore)
 test('interval/3_empty_interval') :- 
-    interval(5, 3, []).
-% Test con fallimento su variabile libera per L
+    interval(5, 3, []),
+    interval(pos_infinity, neg_infinity, []).
+% Test con fallimento su variabile libera per L H
 test('interval/3_fail_var_L', fail) :- 
-    interval(_, 3, _).
-% Test con fallimento su variabile libera per H
-test('interval/3_fail_var_H', fail) :- 
-    interval(3, _, _).
+    interval(a, _, _),
+    interval(_, a, _).
 % Test con fallimento su variabili libere per L e H
 test('interval/3_fail_vars', fail) :- 
     interval(_, _, _).
 % Test con fallimento su L non esteso reale
-test('interval/3_fail_non_extended_real_L', fail) :- 
-    interval(a, 3, _).
-% Test con fallimento su H non esteso reale
-test('interval/3_fail_non_extended_real_H', fail) :- 
-    interval(3, a, _).
-% Test con fallimento su entrambi i limiti non estesi reali
-test('interval/3_fail_non_extended_real_L_H', fail) :- 
+test('interval/3_fail_non_extended_real', fail) :- 
+    interval(a, 3, _),
+    interval(3, a, _),
     interval(a, b, _).
-% Test con intervallo valido usando infinito
-test('interval/3_pos_infinity') :- 
-    interval(neg_infinity, pos_infinity, [neg_infinity, pos_infinity]).
-% Test con intervallo vuoto usando infinito
-test('interval/3_empty_interval_infinity') :- 
-    interval(pos_infinity, neg_infinity, []).
-
-
 
 % Test per interval/1
 test('is_interval/1_valid') :- 
     is_interval([5, 10]),
     is_interval([neg_infinity, pos_infinity]),
+    is_interval([pos_infinity, pos_infinity]),
+    is_interval([neg_infinity, neg_infinity]),
     is_interval([3, 3]). % singleton
 
 test('is_interval/1_invalid', fail) :- 
@@ -466,6 +449,8 @@ test('isup/2_invalid', fail) :-
 % Test per icontains/2
 test('icontains/2_valid') :- 
     icontains([5, 10], 7),
+    icontains([2, 3], [2,3]),
+    icontains([2, pos_infinity], pos_infinity),
     icontains([neg_infinity, pos_infinity], 0),
     icontains([5, 10], [6, 8]),
     icontains([5, 10], [5, 7]).
@@ -721,29 +706,37 @@ test('idiv/3_case_n1_p_exception') :-
 test('idiv/3_case_p1_m') :- 
     idiv([1, 4], [-2, 2], [[neg_infinity, -0.5], [0.5, pos_infinity]]),
     idiv([2, 6], [-3, 1], [[neg_infinity, -0.6666666666666666], [2, pos_infinity]]),
-    idiv([1, 5], [-2, pos_infinity], [[neg_infinity, -0.5], [0, pos_infinity]].),
+    idiv([1, 5], [-2, pos_infinity], [[neg_infinity, -0.5], [0, pos_infinity]]),
     idiv([1, pos_infinity], [-5, 3], [[neg_infinity, -0.2], [0.3333333333333333, pos_infinity]]),
     idiv([2, pos_infinity], [-2, 4], [[neg_infinity, -1], [0.5, pos_infinity]]).
 
 % 7 CASO P0 M
 test('idiv/3_case_p0_m') :- 
-    idiv([0, 2], [-2, 4], Result),
-    Result = [neg_infinity, pos_infinity].
+    idiv([0, 2], [-2, 2], [neg_infinity, pos_infinity]),
+    idiv([0, 3], [-3, 1], [neg_infinity, pos_infinity]),
+    idiv([0, 4], [-2, pos_infinity], [neg_infinity, pos_infinity]),
+    idiv([0, pos_infinity], [-5, 3], [neg_infinity, pos_infinity]).
 
 % 8 CASO M M
 test('idiv/3_case_m_m') :- 
-    idiv([-2, 2], [-2, 4], Result),
-    Result = [neg_infinity, pos_infinity].
+    idiv([-4, 1], [-2, 2], [neg_infinity, pos_infinity]),
+    idiv([-5, 2], [-2, pos_infinity], [neg_infinity, pos_infinity]),
+    idiv([neg_infinity, 1], [-5, 3], [neg_infinity, pos_infinity]),
+    idiv([neg_infinity, 2], [-2, 4], [neg_infinity, pos_infinity]).
 
 % 9 CASO N0 M
 test('idiv/3_case_n0_m') :- 
-    idiv([-2, 0], [-2, 4], Result),
-    Result = [neg_infinity, pos_infinity].
+    idiv([-2, 0], [-2, 2], [neg_infinity, pos_infinity]),
+    idiv([-3, 0], [-3, 1], [neg_infinity, pos_infinity]),
+    idiv([-4, 0], [-2, pos_infinity], [neg_infinity, pos_infinity]),
+    idiv([neg_infinity, 0], [-5, 3], [neg_infinity, pos_infinity]),
+    idiv([neg_infinity, 0], [-2, 4], [neg_infinity, pos_infinity]).
 
 % 10 CASO N1 M
 test('idiv/3_case_n1_m') :- 
-    idiv([-2, -1], [-2, 4], Result),
-    Result = [[neg_infinity, -0.25], [0.5, pos_infinity]].
+    idiv([-4, -1], [-2, 2], [[neg_infinity, -0.5], [0.5, pos_infinity]]),
+    idiv([-5, -1], [-2, pos_infinity], [[neg_infinity, 0], [0.5, pos_infinity]]),
+    idiv([neg_infinity, -2], [-2, 4], [[neg_infinity, -0.5], [1, pos_infinity]]).
 
 % 11 CASO P1 N
 test('idiv/3_case_p1_n') :- 
@@ -808,9 +801,6 @@ test('idiv/3_fail_invalid_interval', fail) :-
 test('idiv/3_fail_zero_division', fail) :- 
     idiv([1, 4], [0, 2], Result),
     Result \= [0.5, pos_infinity].
-
-
-
 
 
 :- end_tests(intar).
