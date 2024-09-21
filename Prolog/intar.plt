@@ -12,6 +12,11 @@
 % exteneded_real
 test(er_fail, fail) :-
     extended_real(a).
+test(er_check) :-
+    extended_real(neg_infinity),
+    extended_real(pos_infinity),
+    random(A),
+    extended_real(A).
 
 % plus_e/2
 test('plus_e_fail/2', fail) :-
