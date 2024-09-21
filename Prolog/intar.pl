@@ -733,20 +733,20 @@ iminus([L1, H1], [L2, H2], [Result1, Result2]) :-
 % X or Y extended real
 iminus(X, [L2, H2], [Result1, Result2]) :- 
     interval(X, SI),
-    iminus(SI, [L2, H2], [Result1, Result2]),
-    !.
+    !,
+    iminus(SI, [L2, H2], [Result1, Result2]).
 
 iminus([L1, H1], Y, [Result1, Result2]) :- 
     interval(Y, SI),
-    iminus([L1, H1], SI, [Result1, Result2]),
-    !.
+    !,
+    iminus([L1, H1], SI, [Result1, Result2]).
 
 % X and Y extended real
 iminus(X, Y, Result) :- 
     interval(X, SI1),
     interval(Y, SI2),
-    iminus(SI1, SI2, Result),
-    !.
+    !,
+    iminus(SI1, SI2, Result).
 
 % The predicate itimes/1 is true if ZI is a non empty interval.
 itimes([]):- !, fail.
@@ -1014,31 +1014,31 @@ idiv([neg_infinity, B], [C, pos_infinity], [Result1, Result2]) :-
 idiv([A, pos_infinity], [neg_infinity, D], [Result1, Result2]) :- 
     er_max(A, 0, A),
     er_min(D, 0, D),
+    !,
     div_e(pos_infinity, D, S1),
     div_e(A, neg_infinity, S3),
     Result1 = S1,
-    Result2 = S3,
-    !.
+    Result2 = S3.
 
-% In = M
-/* idiv([neg_infinity, B], [neg_infinity, D], [Result1, Result2]) :- 
-    er_max(B, 0, B),
-    er_min(D, 0, D),
-    div_e(B, D, S1),
-    div_e(neg_infinity, pos_infinity, S3), % qui fa fail
-    Result1 = S1,
-    Result2 = S3,
-    !.
-*/
 % In = N
 idiv([neg_infinity, B], [neg_infinity, D], [Result1, Result2]) :- 
     er_min(B, 0, B),
     er_min(D, 0, D),
+    !,
     div_e(B, neg_infinity, S1),
     div_e(neg_infinity, D, S4),
     Result1 = S1,
-    Result2 = S4,
-    !.
+    Result2 = S4.
+
+% In = M
+idiv([neg_infinity, B], [neg_infinity, D], [Result1, Result2]) :- 
+    er_max(B, 0, B),
+    er_min(D, 0, D),
+    !,
+    div_e(B, D, S1),
+    div_e(neg_infinity, D, S3), % qui fa fail
+    Result1 = S1,
+    Result2 = S3.
 
 % caso "base".
 idiv([A, B], [C, D], [Result1, Result2]) :- 
@@ -1057,20 +1057,19 @@ idiv([A, B], [C, D], [Result1, Result2]) :-
 % X or Y extended real
 idiv(X, [C, D], [Result1, Result2]) :- 
     interval(X, SI),
-    idiv(SI, [C, D], [Result1, Result2]),
-    !.
+    !,
+    idiv(SI, [C, D], [Result1, Result2]).
 
 idiv([A, B], Y, [Result1, Result2]) :- 
     interval(Y, SI),
-    idiv([A, B], SI, [Result1, Result2]),
-    !.
-
+    !,
+    idiv([A, B], SI, [Result1, Result2]).
 % X and Y extended real
 idiv(X, Y, Result) :- 
     interval(X, SI1),
     interval(Y, SI2),
-    idiv(SI1, SI2, Result),
-    !.
+    !,
+    idiv(SI1, SI2, Result).
 
 % idiv(_, _ , _) :- !, fail.
 %%%% end of file -- intar.pl --

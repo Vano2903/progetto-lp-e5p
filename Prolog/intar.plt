@@ -377,18 +377,23 @@ test('interval/3_equal_bounds') :-
 % Test con intervallo vuoto (inferiore maggiore del superiore)
 test('interval/3_empty_interval') :- 
     interval(5, 3, []),
+    interval(pos_infinity, 2, []),
+    interval(-2, neg_infinity, []),
     interval(pos_infinity, neg_infinity, []).
 % Test con fallimento su variabile libera per L H
 test('interval/3_fail_var_L', fail) :- 
-    interval(a, _, _),
+    interval(a, _, _).
+test('interval/3_fail_var_H', fail) :- 
     interval(_, a, _).
 % Test con fallimento su variabili libere per L e H
 test('interval/3_fail_vars', fail) :- 
     interval(_, _, _).
 % Test con fallimento su L non esteso reale
-test('interval/3_fail_non_extended_real', fail) :- 
-    interval(a, 3, _),
-    interval(3, a, _),
+test('interval/3_fail_non_extended_real1', fail) :- 
+    interval(a, 3, _).
+test('interval/3_fail_non_extended_real2', fail) :- 
+    interval(3, a, _).
+test('interval/3_fail_non_extended_real3', fail) :- 
     interval(a, b, _).
 
 % Test per interval/1
@@ -402,18 +407,25 @@ test('is_interval/1_valid') :-
 test('is_interval/1_invalid', fail) :- 
     is_interval([10, 5]).
 test('is_interval/1_invalid', fail) :- 
+    is_interval([pos_infinity, 5]).
+test('is_interval/1_invalid', fail) :- 
+    is_interval([5, neg_infinity]).
+test('is_interval/1_invalid', fail) :- 
     is_interval([5, pos_infinity, 10]).
 
 % Test per whole_interval/1
 test('whole_interval/1_valid') :- 
     whole_interval([neg_infinity, pos_infinity]).
-
 test('whole_interval/1_invalid1', fail) :- 
     whole_interval([5, 10]).
 test('whole_interval/1_invalid2', fail) :- 
     whole_interval([neg_infinity, 5]).
 test('whole_interval/1_invalid3', fail) :- 
     whole_interval([5, pos_infinity]).
+test('whole_interval/1_invalid4', fail) :- 
+    whole_interval([pos_infinity, pos_infinity]).
+test('whole_interval/1_invalid5', fail) :- 
+    whole_interval([neg_infinity, neg_infinity]).
 
 % Test per singleton/1
 test('is_singleton/1_valid') :- 
@@ -471,12 +483,18 @@ test('icontains/2_invalid', fail) :-
     icontains([5, 10], [4, 6]).
 test('icontains/2_invalid', fail) :- 
     icontains([5, 10], [11, 12]).
-
+test('icontains/2_invalid', fail) :- 
+    icontains([pos_infinity, pos_infinity], [neg_infinity, 12]).
+test('icontains/2_invalid', fail) :- 
+    icontains([pos_infinity, pos_infinity], [neg_infinity, neg_infinity]).
 % ioverlap/2
 test(ioverlap) :- 
-    ioverlap([1, 5], [3, 7]).
-test(ioverlap) :- 
+    ioverlap([1, 5], [3, 7]),
     ioverlap([1, 5], [5, 10]).
+test(ioverlap_fail, fail) :-
+    ioverlap([pos_infinity, pos_infinity], [neg_infinity, neg_infinity]).
+test(ioverlap_fail, fail) :-
+    ioverlap([neg_infinity, neg_infinity], [pos_infinity, pos_infinity]).
 test(ioverlap_fail, fail) :- 
     ioverlap([1, 5], [6, 10]).
 test(ioverlap_fail, fail) :- 
@@ -485,8 +503,14 @@ test(ioverlap_fail, fail) :-
 %%% Interval Arithmetic Tests
 
 % iplus/2
-test('iplus/2') :- 
-    iplus([1, 2], [1, 2]).
+test('iplus/2_unifies') :- 
+    iplus([1, 2], [1, 2]),
+    iplus([pos_infinity, pos_infinity], [pos_infinity, pos_infinity]),
+    iplus([neg_infinity, neg_infinity], [neg_infinity, neg_infinity]).
+test('iplus/2_singleton') :- 
+    iplus(2, [2, 2]),
+    iplus(pos_infinity, [pos_infinity, pos_infinity]),
+    iplus(neg_infinity, [neg_infinity, neg_infinity]).
 test('iplus/2_fail', fail) :- 
     iplus([1, 2],  [-2, -1]).
 test('iplus/2_fail', fail) :- 
@@ -496,7 +520,6 @@ test('iplus/2_fail', fail) :-
 % Test base per somma di intervalli finiti
 test('iplus/3') :- 
     iplus([1, 2], [2, 3], [3, 5]).
-
 % Test con intervallo infinito positivo
 test('iplus/3_pos_infinity') :- 
     iplus([1, pos_infinity], [2, 3], [3, pos_infinity]).
@@ -516,19 +539,13 @@ test('iplus/3_finite_neg_infinity') :-
 % Test che fallisce quando l'intervallo risultante è errato
 test('iplus/3_fail', fail) :- 
     iplus([1, 2], [2, 3], [4, 6]).
-% Test che fallisce quando uno degli intervalli non è corretto
-test('iplus/3_fail_invalid', fail) :- 
-    iplus([2, 1], _, _).
-test('iplus/3_fail_invalid', fail) :- 
-    iplus(_, [2, 1], _).
-test('iplus/3_fail_invalidinfinity', fail) :- 
-    iplus(_, [pos_infinity, 3], _).
-test('iplus/3_fail_invalidinfinity', fail) :- 
-    iplus([pos_infinity, 3], _, _).
-test('iplus/3_fail_invalidinfinity', fail) :- 
-    iplus([-2, neg_infinity], _, _).
-test('iplus/3_fail_invalidinfinity', fail) :- 
-    iplus(_, [-2, neg_infinity], _).
+test('iplus/3_fail2', fail) :- 
+    iplus([neg_infinity, pos_infinity], [pos_infinity, pos_infinity], _).
+test('iplus/3_fail3', fail) :- 
+    iplus([neg_infinity, pos_infinity], [neg_infinity, neg_infinity], _).
+test('iplus/3_fail3', fail) :- 
+    iplus([neg_infinity, neg_infinity], [pos_infinity, pos_infinity], _).
+
 
 % iminus/2
 test('iminus/2') :- 
@@ -566,27 +583,11 @@ test('iminus/3_finite_neg_infinity') :-
 test('iminus/3_fail', fail) :- 
     iminus([3, 5], [1, 2], [2, 4]).
 
-% Test che fallisce quando uno degli intervalli non è corretto
-test('iminus/3_fail_invalid', fail) :- 
-    iminus([5, 3], _, _).
-test('iminus/3_fail_invalidinfinity', fail) :- 
-    iminus([5, 3], _, _).
-test('iminus/3_fail_invalidinfinity', fail) :- 
-    iminus(_, [pos_infinity, 3], _).
-test('iminus/3_fail_invalidinfinity', fail) :- 
-    iminus([pos_infinity, 3], _, _).
-test('iminus/3_fail_invalidinfinity', fail) :- 
-    iminus([-2, neg_infinity], _, _).
-test('iminus/3_fail_invalidinfinity', fail) :- 
-    iminus(_, [-2, neg_infinity], _).
-
-
 % itimes/2  
 test('itimes/2') :- 
     itimes([2, 3], [2, 3]).
 test('itimes/2_fail', fail) :- 
     itimes(a, _).
-
 test('itimes/2_fail', fail) :- 
     itimes([], _).
 
@@ -619,9 +620,6 @@ test('itimes/3_finite_neg_infinity') :-
 test('itimes/3_fail', fail) :- 
     itimes([2, 3], [4, 5], [9, 15]).
 
-% Test che fallisce quando uno degli intervalli non è corretto
-test('itimes/3_fail_invalid', fail) :- 
-    itimes([2, 3], _, _).
 
 
 % idiv/2
@@ -638,93 +636,137 @@ test('idiv/3_case_0_i') :-
     idiv([0, 0], [1, 2], [0, 0]),
     idiv([0, 0], [1, pos_infinity], [0, 0]),
     idiv([0, 0], [neg_infinity, 2], [0, 0]),
+    idiv([0, 0], [neg_infinity, neg_infinity], [0, 0]),
+    idiv([0, 0], [pos_infinity, pos_infinity], [0, 0]),
     idiv([0, 0], [neg_infinity, pos_infinity], [0, 0]).
 % I / [0,0]
 test('idiv/3_case_i_0', fail) :- 
     idiv([1, 2], [0, 0], _),
     idiv([1, pos_infinity], [0, 0], _),
     idiv([neg_infinity, 2], [0, 0], _),
+    idiv([neg_infinity, neg_infinity], [0, 0], _),
+    idiv([pos_infinity, pos_infinity], [0, 0], _),
     idiv([neg_infinity, pos_infinity], [0, 0], _).
-% 1 CASO P1 P
+% 1 CASO P1 P \{0} a/d b/c
 test('idiv/3_case_p1_p') :- 
     idiv([1, 4], [1, 2], [0.5, 4]),
-    idiv([2, 10], [2, 5], [0.4, 5]),
-    idiv([1, 3], [1, pos_infinity], [0, 3]),
-    idiv([pos_infinity, pos_infinity], [1, 4], [pos_infinity, pos_infinity]),
-    idiv([1, pos_infinity], [2, pos_infinity], [0, pos_infinity]).%
-% Eccezione: C=0
+    idiv([1, 4], [1, pos_infinity], [0, 4]),
+    idiv([1, 4], [pos_infinity, pos_infinity], [0, 0]).
+test('idiv/3_case_p1_p') :-
+    idiv([1, pos_infinity], [1, 2], [0.5, pos_infinity]),
+    idiv([1, pos_infinity], [1, pos_infinity], [0, pos_infinity]).
+test('idiv/3_case_p1_p', fail) :-
+    idiv([1, pos_infinity], [pos_infinity, pos_infinity], _).
+test('idiv/3_case_p1_p') :-
+    idiv([pos_infinity, pos_infinity], [1, 4], [pos_infinity, pos_infinity]).
+test('idiv/3_case_p1_p', fail) :-
+    idiv([pos_infinity, pos_infinity], [1, pos_infinity], _).
+test('idiv/3_case_p1_p', fail) :-
+    idiv([pos_infinity, pos_infinity], [pos_infinity, pos_infinity], _).
+% Eccezione: C=0 \{0}
 test('idiv/3_case_p1_p_exception') :- 
-    idiv([1, 4], [0, pos_infinity], [0, pos_infinity]),%
-    idiv([2, 10], [0, 8], [0.25, pos_infinity]),
-    idiv([8, pos_infinity], [0, 4], [2, pos_infinity]),
-    idiv([1, pos_infinity], [2, pos_infinity], [0, pos_infinity]),
-    idiv([pos_infinity, pos_infinity], [0, 4], [pos_infinity, pos_infinity]).
-test('idiv/3_case_p1_p', fail) :- 
-    idiv([pos_infinity, pos_infinity], [_, pos_infinity], _).
+    idiv([1, 4], [0, 2], [0.5, pos_infinity]),
+    idiv([1, 4], [0, pos_infinity], [0, pos_infinity]).%
+test('idiv/3_case_p1_p') :- 
+    idiv([1, pos_infinity], [0, 2], [0.5, pos_infinity]),
+    idiv([1, pos_infinity], [0, pos_infinity], [0, pos_infinity]).
+test('idiv/3_case_p1_p') :- 
+    idiv([pos_infinity, pos_infinity], [0, 2], [pos_infinity, pos_infinity]).
+test('idiv/3_case_p1_p', fail) :-
+    idiv([pos_infinity, pos_infinity], [0, pos_infinity], _).
 
-% 2 CASO P0 P
+% 2 CASO P0 P \{0} 0 b/c
 test('idiv/3_case_p0_p') :- 
     idiv([0, 4], [1, 2], [0, 4]),
-    idiv([0, 3], [1, pos_infinity], [0, 3]),
-    idiv([0, pos_infinity], [2, pos_infinity], [0, pos_infinity]).
-% Eccezione: Divisione per zero
+    idiv([0, 4], [1, pos_infinity], [0, 4]),
+    idiv([0, 4], [pos_infinity, pos_infinity], [0, 0]).
+test('idiv/3_case_p0_p') :-
+    idiv([0, pos_infinity], [1, 2], [0, pos_infinity]),
+    idiv([0, pos_infinity], [1, pos_infinity], [0, pos_infinity]).
+test('idiv/3_case_p0_p', fail) :-
+    idiv([0, pos_infinity], [pos_infinity, pos_infinity], _).
+% Eccezione: C=0 
 test('idiv/3_case_p0_p_exception') :- 
     idiv([0, 4], [0, 2], [0, pos_infinity]),
-    idiv([0, 10], [0, 5], [0, pos_infinity]),
-    idiv([0, 3], [0, pos_infinity], [0, pos_infinity]),
-    idiv([0, pos_infinity], [0, pos_infinity], [0, pos_infinity]).
-test('idiv/3_case_p0_p', fail) :- 
-    idiv([0, pos_infinity], [pos_infinity, pos_infinity], _).
+    idiv([0, 4], [0, pos_infinity], [0, pos_infinity]).
 
-% 3 CASO M P
+% 3 CASO M P a/c b/c
 test('idiv/3_case_m_p') :- 
     idiv([-4, 4], [1, 2], [-4, 4]),
-    idiv([-4, pos_infinity], [1, 2], [-4, pos_infinity]),
     idiv([-4, 4], [1, pos_infinity], [-4, 4]),
-    idiv([neg_infinity, 4], [1, 3], [neg_infinity, 4]),
-    idiv([neg_infinity, pos_infinity], [1, pos_infinity], [neg_infinity, pos_infinity]).
-% Eccezione: Divisione per zero
-test('idiv/3_case_m_p_exception') :- 
-    idiv([-4, 4], [0, 2], [neg_infinity, pos_infinity]),
-    idiv([-4, pos_infinity], [0, 2], [neg_infinity, pos_infinity]),
-    idiv([-10, 2], [0, 4], [neg_infinity, pos_infinity]),
-    idiv([-4, 4], [0, pos_infinity], [neg_infinity, pos_infinity]),
-    idiv([neg_infinity, 4], [0, 3], [neg_infinity, pos_infinity]),
-    idiv([neg_infinity, pos_infinity], [0, pos_infinity], [neg_infinity, pos_infinity]).
-test('idiv/3_case_m_p', fail) :- 
-    idiv([neg_infinity, 4], [pos_infinity, pos_infinity], _),
-    idiv([neg_infinity, pos_infinity], [pos_infinity, pos_infinity], _).    
+    idiv([-4, 4], [pos_infinity, pos_infinity], [0, 0]).
 
-% 4 CASO N0 P
+test('idiv/3_case_m_p') :-
+    idiv([-4, pos_infinity], [1, 2], [-4, pos_infinity]),
+    idiv([-4, pos_infinity], [1, pos_infinity], [-4, pos_infinity]).%da risolvere
+test('idiv/3_case_m_p', fail) :-
+    idiv([-4, pos_infinity], [pos_infinity, pos_infinity], _).
+
+test('idiv/3_case_m_p') :-
+    idiv([neg_infinity, 4], [1, 2], [neg_infinity, 4]),
+    idiv([neg_infinity, 4], [1, pos_infinity], [neg_infinity, 4]).
+test('idiv/3_case_m_p', fail) :-
+    idiv([neg_infinity, 4], [pos_infinity, pos_infinity], _).
+
+test('idiv/3_case_m_p') :-
+    idiv([neg_infinity, pos_infinity], [1, 2], [neg_infinity, pos_infinity]),
+    idiv([neg_infinity, pos_infinity], [1, pos_infinity], [neg_infinity, pos_infinity]).
+test('idiv/3_case_m_p', fail) :-
+    idiv([neg_infinity, pos_infinity], [pos_infinity, pos_infinity], _).
+
+%eccezione C=0
+test('idiv/3_case_m_p') :- 
+    idiv([-4, 4], [0, 2], [neg_infinity, pos_infinity]),
+    idiv([-4, 4], [0, pos_infinity], [neg_infinity, pos_infinity]).
+test('idiv/3_case_m_p') :-
+    idiv([-4, pos_infinity], [0, 2], [neg_infinity, pos_infinity]),
+    idiv([-4, pos_infinity], [0, pos_infinity], [neg_infinity, pos_infinity]).%errore
+test('idiv/3_case_m_p') :-
+    idiv([neg_infinity, 4], [0, 2], [neg_infinity, pos_infinity]),
+    idiv([neg_infinity, 4], [0, pos_infinity], [neg_infinity, pos_infinity]).
+test('idiv/3_case_m_p') :-
+    idiv([neg_infinity, pos_infinity], [0, 2], [neg_infinity, pos_infinity]),
+    idiv([neg_infinity, pos_infinity], [0, pos_infinity], [neg_infinity, pos_infinity]).
+
+% 4 CASO N0 P a/c 0
 test('idiv/3_case_n0_p') :- 
     idiv([-4, 0], [1, 2], [-4, 0]),
     idiv([-4, 0], [1, pos_infinity], [-4, 0]),
+    idiv([-4, 0], [pos_infinity, pos_infinity], [0, 0]).
+test('idiv/3_case_n0_p') :-
     idiv([neg_infinity, 0], [1, 3], [neg_infinity, 0]),
     idiv([neg_infinity, 0], [1, pos_infinity], [neg_infinity, 0]).
-% Eccezione: Divisione per zero
+test('idiv/3_case_n0_p', fail) :-
+    idiv([neg_infinity, 0], [pos_infinity, pos_infinity], _).
+% Eccezione: c=0
 test('idiv/3_case_n0_p_exception') :- 
     idiv([-4, 0], [0, 2], [neg_infinity, 0]),
-    idiv([-10, 0], [0, 4], [neg_infinity, 0]),
-    idiv([-4, 0], [0, pos_infinity], [neg_infinity, 0]),
+    idiv([-4, 0], [0, pos_infinity], [neg_infinity, 0]).
+test('idiv/3_case_n0_p_exception') :-
     idiv([neg_infinity, 0], [0, 3], [neg_infinity, 0]),
     idiv([neg_infinity, 0], [0, pos_infinity], [neg_infinity, 0]).
-test('idiv/3_case_n0_p', fail) :- 
+test('idiv/3_case_n0_p_exception', fail) :-
     idiv([neg_infinity, 0], [pos_infinity, pos_infinity], _).
 
-% 5 CASO N1 P
+% 5 CASO N1 P \{0} a/c b/d
 test('idiv/3_case_n1_p') :- 
     idiv([-4, -1], [1, 2], [-4, -0.5]),
-    idiv([-10, -1], [1, 4], [-10, -0.25]),
     idiv([-4, -1], [1, pos_infinity], [-4, 0]),%
-    idiv([neg_infinity, -10], [1, pos_infinity], [neg_infinity, 0]),%
-    idiv([neg_infinity, -4], [1, 2], [neg_infinity, -2]).
-% Eccezione: Divisione per zero
+    idiv([-4, -1], [pos_infinity, pos_infinity], [0, 0]).%
+test('idiv/3_case_n1_p') :-
+    idiv([neg_infinity, -1], [1, 2], [neg_infinity, -0.5]),
+    idiv([neg_infinity, -1], [1, pos_infinity], [neg_infinity, 0]).%
+test('idiv/3_case_n1_p', fail) :-
+    idiv([neg_infinity, -1], [pos_infinity, pos_infinity], _).%
+% Eccezione: Divisione per zero \{0}
 test('idiv/3_case_n1_p_exception') :- 
     idiv([-4, -1], [0, 2], [neg_infinity, -0.5]),
-    idiv([-10, -1], [0, 4], [neg_infinity, -0.25]),
-    idiv([-4, -1], [0, pos_infinity], [neg_infinity, 0]),
+    idiv([-4, -1], [0, pos_infinity], [neg_infinity, 0]).
+test('idiv/3_case_n1_p_exception') :-
     idiv([neg_infinity, -4], [0, 2], [neg_infinity, -2]),
     idiv([neg_infinity, -10], [0, pos_infinity], [neg_infinity, 0]).
+test('idiv/3_case_n1_p_exception') :-
+   idiv([neg_infinity, neg_infinity], [0, 2], [neg_infinity, neg_infinity]).
 test('idiv/3_case_n1_p_fail', fail) :-
    idiv([neg_infinity, neg_infinity], [0, pos_infinity], _).
 
@@ -738,84 +780,197 @@ test('idiv/3_case_p1_m') :-
     idiv([pos_infinity, pos_infinity], [-2, 4], [[neg_infinity, neg_infinity], [pos_infinity, pos_infinity]]),
     idiv([2, pos_infinity], [-2, 4], [[neg_infinity, -1], [0.5, pos_infinity]]).
 
+test('idiv/3_case_p1_m', fail) :- 
+    idiv([pos_infinity, pos_infinity], [neg_infinity, pos_infinity], _).
 % 7 CASO P0 M
 test('idiv/3_case_p0_m') :- 
     idiv([0, 2], [-2, 2], [neg_infinity, pos_infinity]),
-    idiv([0, 3], [neg_infinity, pos_infinity], [neg_infinity, pos_infinity]),
     idiv([0, 4], [-2, pos_infinity], [neg_infinity, pos_infinity]),
-    idiv([0, pos_infinity], [-5, 3], [neg_infinity, pos_infinity]),
+    idiv([0, pos_infinity], [-5, 3], [neg_infinity, pos_infinity]).
+test('idiv/3_case_p0_m') :- 
+    idiv([0, 3], [neg_infinity, pos_infinity], [neg_infinity, pos_infinity]),
     idiv([0, pos_infinity], [neg_infinity, pos_infinity], [neg_infinity, pos_infinity]).
+
 % 8 CASO M M
 test('idiv/3_case_m_m') :- 
     idiv([-4, 1], [-2, 2], [neg_infinity, pos_infinity]),
     idiv([-5, 2], [-2, pos_infinity], [neg_infinity, pos_infinity]),
-    idiv([neg_infinity, 1], [-5, 3], [neg_infinity, pos_infinity]),
-    idiv([neg_infinity, 2], [-2, 4], [neg_infinity, pos_infinity]).
-
+    idiv([neg_infinity, 2], [-2, 4], [neg_infinity, pos_infinity]),
+    idiv([neg_infinity, 2], [neg_infinity, 4], [neg_infinity, pos_infinity]),
+    idiv([neg_infinity, 2], [-2, pos_infinity], [neg_infinity, pos_infinity]). 
+test('idiv/3_case_m_m') :-
+    idiv([neg_infinity, pos_infinity], [-2, 4], [neg_infinity, pos_infinity]),
+    idiv([neg_infinity, pos_infinity], [-2, pos_infinity], [neg_infinity, pos_infinity]),
+    idiv([neg_infinity, pos_infinity], [neg_infinity, 4], [neg_infinity, pos_infinity]).
+test('idiv/3_case_m_m') :-
+    idiv([-2, 4], [neg_infinity, pos_infinity], [neg_infinity, pos_infinity]),
+    idiv([-2, pos_infinity], [neg_infinity, pos_infinity], [neg_infinity, pos_infinity]),
+    idiv([neg_infinity, 4], [neg_infinity, pos_infinity], [neg_infinity, pos_infinity]).
+test('idiv/3_case_m_m') :- 
+    idiv([neg_infinity, pos_infinity], [neg_infinity, pos_infinity], [neg_infinity, pos_infinity]).
 % 9 CASO N0 M
 test('idiv/3_case_n0_m') :- 
     idiv([-2, 0], [-2, 2], [neg_infinity, pos_infinity]),
-    idiv([-3, 0], [-3, 1], [neg_infinity, pos_infinity]),
-    idiv([-4, 0], [-2, pos_infinity], [neg_infinity, pos_infinity]),
+    idiv([-2, 0], [-2, pos_infinity], [neg_infinity, pos_infinity]),
+    idiv([-2, 0], [neg_infinity, 2], [neg_infinity, pos_infinity]),
+    idiv([-2, 0], [neg_infinity, pos_infinity], [neg_infinity, pos_infinity]).
+test('idiv/3_case_n0_m') :-
+    idiv([-4, 0], [neg_infinity, pos_infinity], [neg_infinity, pos_infinity]),
     idiv([neg_infinity, 0], [-5, 3], [neg_infinity, pos_infinity]),
-    idiv([neg_infinity, 0], [-2, 4], [neg_infinity, pos_infinity]).
+    idiv([neg_infinity, 0], [-2, pos_infinity], [neg_infinity, pos_infinity]),
+    idiv([neg_infinity, 0], [neg_infinity, 2], [neg_infinity, pos_infinity]),
+    idiv([neg_infinity, 0], [neg_infinity, pos_infinity], [neg_infinity, pos_infinity]).
 
 % 10 CASO N1 M
 test('idiv/3_case_n1_m') :- 
     idiv([-4, -1], [-2, 2], [[neg_infinity, -0.5], [0.5, pos_infinity]]),
     idiv([-5, -1], [-2, pos_infinity], [[neg_infinity, 0], [0.5, pos_infinity]]),
-    idiv([neg_infinity, -2], [-2, 4], [[neg_infinity, -0.5], [1, pos_infinity]]).
+    idiv([-5, -1], [neg_infinity, 2], [[neg_infinity, -0.5], [0, pos_infinity]]),%
+    idiv([neg_infinity, -2], [-2, 4], [[neg_infinity, -0.5], [1, pos_infinity]]),
+    idiv([neg_infinity, -2], [-2, pos_infinity], [[neg_infinity, 0], [1, pos_infinity]]),
+    idiv([neg_infinity, -2], [neg_infinity, 4], [[neg_infinity, -0.5], [0, pos_infinity]]),
+    idiv([neg_infinity, -2], [neg_infinity, pos_infinity], [[neg_infinity, 0], [0, pos_infinity]]).%
+test('idiv/3_case_n1_m') :-
+    idiv([neg_infinity, neg_infinity], [-2, 4], [[neg_infinity, neg_infinity], [pos_infinity, pos_infinity]]).
+test('idiv/3_case_n1_m_fail', fail) :-
+    idiv([neg_infinity, neg_infinity], [neg_infinity, 4], fail).
+test('idiv/3_case_n1_m_fail', fail) :-
+    idiv([neg_infinity, neg_infinity], [neg_infinity, pos_infinity], fail).
+test('idiv/3_case_n1_m_fail', fail) :-
+    idiv([neg_infinity, neg_infinity], [-2, pos_infinity], [[neg_infinity, neg_infinity], [pos_infinity, pos_infinity]]).
 
-% 11 CASO P1 N 
+% 11 CASO P1 N \{0}
 test('idiv/3_case_p1_n') :- 
     idiv([1, 4], [-2, -1], [-4, -0.5]),
-    idiv([1, 4], [neg_infinity, neg_infinity], [0, 0]),
+    idiv([1, 4], [neg_infinity, -1], [-4, 0]),
+    idiv([1, 4], [neg_infinity, neg_infinity], [0, 0]).
+
+test('idiv/3_case_p1_n') :-
     idiv([1, pos_infinity], [-2, -1], [neg_infinity, -0.5]),
     idiv([1, pos_infinity], [neg_infinity, -1], [neg_infinity, 0]).%
+test('idiv/3_case_p1_n', fail) :-   
+    idiv([1, pos_infinity], [neg_infinity, neg_infinity], _).
+
+test('idiv/3_case_p1_n') :-
+    idiv([pos_infinity, pos_infinity], [-2, -1], [neg_infinity, neg_infinity]).
+test('idiv/3_case_p1_n', fail) :- 
+    idiv([pos_infinity, pos_infinity], [neg_infinity, -1], _).
+test('idiv/3_case_p1_n', fail) :- 
+    idiv([pos_infinity, pos_infinity], [neg_infinity, neg_infinity], fail).
+
 % Eccezione: Divisione per zero
 test('idiv/3_case_p1_n_exception') :- 
     idiv([1, 4], [-2, 0], [neg_infinity, -0.5]),
+    idiv([1, 4], [neg_infinity, 0], [neg_infinity, 0]).
+test('idiv/3_case_p1_n_exception') :-
+    idiv([1, pos_infinity], [-2, 0], [neg_infinity, -0.5]),
+    idiv([1, pos_infinity], [neg_infinity, 0], [neg_infinity, 0]).%
+test('idiv/3_case_p1_n_exception') :-
     idiv([pos_infinity, pos_infinity], [-2, 0], [neg_infinity, neg_infinity]).
-test('idiv/3_case_p1_n', fail) :- 
-    idiv([pos_infinity, pos_infinity], [neg_infinity, neg_infinity], _).
 test('idiv/3_case_p1_n', fail) :- 
     idiv([pos_infinity, pos_infinity], [neg_infinity, 0], _).
 
 % 12 CASO P0 N
 test('idiv/3_case_p0_n') :- 
     idiv([0, 4], [-2, -1], [-4, 0]),
-    idiv([0, pos_infinity], [-2, -1], [neg_infinity, 0]).
+    idiv([0, 4], [neg_infinity, -1], [-4, 0]),
+    idiv([0, 4], [neg_infinity, neg_infinity], [0, 0]).
+
+test('idiv/3_case_p0_n') :-
+    idiv([0, pos_infinity], [-2, -1], [neg_infinity, 0]),
+    idiv([0, pos_infinity], [neg_infinity, -1], [neg_infinity, 0]).
+test('idiv/3_case_p0_n', fail) :-
+    idiv([0, pos_infinity], [neg_infinity, neg_infinity], fail).
+
 % Eccezione: Divisione per zero
 test('idiv/3_case_p0_n_exception') :- 
-    idiv([0, 4], [-2, 0], [neg_infinity, 0]).
+    idiv([0, 4], [-2, 0], [neg_infinity, 0]),
+    idiv([0, 4], [neg_infinity, 0], [neg_infinity, 0]),
+    idiv([0, 4], [neg_infinity, neg_infinity], [0, 0]).
+test('idiv/3_case_p0_n_exception') :-
+    idiv([0, pos_infinity], [-2, 0], [neg_infinity, 0]).
 test('idiv/3_case_p0_n', fail) :- 
     idiv([0, pos_infinity], [neg_infinity, 0], fail).
+test('idiv/3_case_p0_n', fail) :- 
+    idiv([0, pos_infinity], [neg_infinity, neg_infinity], fail).
 
 % 13 CASO M N
 test('idiv/3_case_m_n') :- 
-    idiv([-1, 4], [-2, -1], Result),
-    Result = [-4, 1].
-
+    idiv([-1, 4], [-2, -1], [-4, 1]),
+    idiv([-1, 4], [neg_infinity, -1], [-4, 1]),
+    idiv([-1, 4], [neg_infinity, neg_infinity], [0, 0]).
+test('idiv/3_case_m_n') :-
+    idiv([-1, pos_infinity], [-2, -1], [neg_infinity, 1]),
+    idiv([-1, pos_infinity], [neg_infinity, -1], [neg_infinity, 1]),%da risolvere
+    idiv([-1, pos_infinity], [neg_infinity, neg_infinity], fail).
+test('idiv/3_case_m_n') :-
+    idiv([neg_infinity, 4], [-2, -1], [-4, pos_infinity]),
+    idiv([neg_infinity, 4], [neg_infinity, -1], [-4, pos_infinity]).
+test('idiv/3_case_m_n', fail) :-
+    idiv([neg_infinity, 4], [neg_infinity, neg_infinity], fail).
+test('idiv/3_case_m_n') :-
+    idiv([neg_infinity, pos_infinity], [-2, -1], [neg_infinity, pos_infinity]),
+    idiv([neg_infinity, pos_infinity], [neg_infinity, -1], [neg_infinity, pos_infinity]).
+test('idiv/3_case_m_n', fail) :-
+    idiv([neg_infinity, pos_infinity], [neg_infinity, neg_infinity], fail).
+test('idiv/3_case_m_n', fail) :-
+    idiv([neg_infinity, pos_infinity], [neg_infinity, neg_infinity], fail).
 % Eccezione: Divisione per zero
 test('idiv/3_case_m_n_exception') :- 
-    idiv([-1, 4], [-2, 0], Result),
-    Result = [neg_infinity, pos_infinity].
+    idiv([-1, 4], [-2, 0], [neg_infinity, pos_infinity]),
+    idiv([-1, pos_infinity], [-2, 0], [neg_infinity, pos_infinity]),
+    idiv([neg_infinity, 4], [-2, 0], [neg_infinity, pos_infinity]),
+    idiv([neg_infinity, pos_infinity], [-2, 0], [neg_infinity, pos_infinity]).
 
 % 14 CASO N0 N
+test('idiv/3_case_n0_n') :- %0 a/d
+    idiv([-1, 0], [-2, -1], [0, 1]),
+    idiv([-1, 0], [neg_infinity, -1], [0, 1]),
+    idiv([-1, 0], [neg_infinity, neg_infinity], [0, 0]).
 test('idiv/3_case_n0_n') :- 
-    idiv([-1, 0], [-2, -1], Result),
-    Result = [0, 1].
+    idiv([neg_infinity, 0], [-2, -1], [0, pos_infinity]),
+    idiv([neg_infinity, 0], [neg_infinity, -1], [0, pos_infinity]).
+test('idiv/3_case_n0_n', fail) :-
+    idiv([neg_infinity, 0], [neg_infinity, neg_infinity], fail).
 
 % Eccezione: Divisione per zero
 test('idiv/3_case_n0_n_exception') :- 
-    idiv([-1, 0], [-2, 0], [0, pos_infinity]).
+    idiv([-1, 0], [-2, 0], [0, pos_infinity]),
+    idiv([-1, 0], [neg_infinity, 0], [0, pos_infinity]).
+test('idiv/3_case_n0_n_exception') :- 
+    idiv([neg_infinity, 0], [-2, 0], [0, pos_infinity]),
+    idiv([neg_infinity, 0], [neg_infinity, 0], [0, pos_infinity]).
 
 % 15 CASO N1 N
-test('idiv/3_case_n1_n') :- 
-    idiv([-2, -1], [-2, -1], [0.5, 2]).
+test('idiv/3_case_n1_n') :- % b/c a/d   
+    idiv([-2, -1], [-2, -1], [0.5, 2]),
+    idiv([-2, -1], [neg_infinity, -1], [0, 2]),
+    idiv([-2, -1], [neg_infinity, neg_infinity], [0, 0]).
+test('idiv/3_case_n1_n') :-
+    idiv([neg_infinity, -1], [-2, -1], [0.5, pos_infinity]),
+    idiv([neg_infinity, -1], [neg_infinity, -1], [0, pos_infinity]).
+test('idiv/3_case_n1_n', fail) :-
+    idiv([neg_infinity, -1], [neg_infinity, neg_infinity], fail).
+test('idiv/3_case_n1_n') :-
+    idiv([neg_infinity, neg_infinity], [-2, -1], [pos_infinity, pos_infinity]).
+test('idiv/3_case_n1_n', fail) :-
+    idiv([neg_infinity, neg_infinity], [neg_infinity, -1], fail).
+test('idiv/3_case_n1_n', fail) :-
+    idiv([neg_infinity, neg_infinity], [neg_infinity, neg_infinity], fail).
+    
 
 % Eccezione: Divisione per zero
-test('idiv/3_case_n1_n_exception') :- 
-    idiv([-2, -1], [-2, 0], [0.5, pos_infinity]).
+test('idiv/3_case_n1_n') :- % b/c a/d   
+    idiv([-2, -1], [-2, 0], [0.5, pos_infinity]),
+    idiv([-2, -1], [neg_infinity, 0], [0, pos_infinity]).
+test('idiv/3_case_n1_n') :-
+    idiv([neg_infinity, -1], [-2, 0], [0.5, pos_infinity]),
+    idiv([neg_infinity, -1], [neg_infinity, 0], [0, pos_infinity]).
+test('idiv/3_case_n1_n') :-
+    idiv([neg_infinity, neg_infinity], [-2, 0], [pos_infinity, pos_infinity]).
+test('idiv/3_case_n1_n', fail) :-
+    idiv([neg_infinity, neg_infinity], [neg_infinity, 0], fail).
+test('idiv/3_case_n1_n', fail) :-
+    idiv([neg_infinity, neg_infinity], [neg_infinity, neg_infinity], fail).
 
 :- end_tests(intar).
