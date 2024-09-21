@@ -901,7 +901,7 @@ test('idiv/3_case_m_n') :-
     idiv([-1, 4], [neg_infinity, neg_infinity], [0, 0]).
 test('idiv/3_case_m_n') :-
    idiv([-1, pos_infinity], [-2, -1], [neg_infinity, 1]),
-    idiv([-1, pos_infinity], [neg_infinity, -1], [neg_infinity, 1]),
+    idiv([-1, pos_infinity], [neg_infinity, -1], [neg_infinity, 1]).
     %idiv([-1, pos_infinity], [neg_infinity, neg_infinity], fail).
 test('idiv/3_case_m_n') :-
     idiv([neg_infinity, 4], [-2, -1], [-4, pos_infinity]),

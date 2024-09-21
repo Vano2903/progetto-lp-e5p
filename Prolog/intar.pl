@@ -647,14 +647,15 @@ iplus(X, _) :-
 
 iplus(X, R) :- 
     iplus(X),
-    R = X,
-    !.
-iplus(X, R) :-                  %%%  ?- iplus(10, [10,X]).  X = 10. da correggere? leggere README
+    !,
+    R = X.
+
+iplus(X, R) :-                  
     extended_real(X),
     is_singleton(R),
+    !,
     iinf(R, L1),
-    X = L1, 
-    !.
+    X = L1.
 
 /* 
 The predicate iplus/3 is true if X and Y are instantiated non empty intervals and R is the
@@ -667,27 +668,23 @@ In all other cases the predicates fail.
 iplus([L1, H1], [L2, H2], [Result1, Result2]) :- 
     iplus([L1, H1]), 
     iplus([L2, H2]),
+    !,
     plus_e(L1, L2, Result1),
-    plus_e(H1, H2, Result2),
-    !.
-
+    plus_e(H1, H2, Result2).
 % somma reale ed intervallo
 iplus(X, [L2, H2], [Result1, Result2]) :- 
     interval(X, SI),
-    iplus(SI, [L2, H2], [Result1, Result2]),
-    !.
+    iplus(SI, [L2, H2], [Result1, Result2]).
 
 iplus([L1, H1], Y, [Result1, Result2]) :- 
     interval(Y, SI),
-    iplus([L1, H1], SI, [Result1, Result2]),
-    !.
+    iplus([L1, H1], SI, [Result1, Result2]).
 
 % somma reale reale
 iplus(X, Y, Result) :- 
     interval(X, SI1),
     interval(Y, SI2),
-    iplus(SI1, SI2, Result),
-    !.
+    iplus(SI1, SI2, Result).
 
 
 /* The predicate iminus/2 is true if X is an instantiated non empty interval and R unifies with
@@ -704,8 +701,8 @@ iminus(X, _) :-
 iminus(X, R) :- 
     extended_real(X),
     interval(X, SI),  
-    iminus(SI, R),
-    !.
+    !,
+    iminus(SI, R).
 
 % intervalli finiti
 iminus([L1, H1], R) :- 
@@ -713,8 +710,7 @@ iminus([L1, H1], R) :-
     minus_e(L1, L2),  
     minus_e(H1, H2),
     R = [H2, L2],
-    iplus(R),
-    !.
+    iplus(R).
 
 /* The predicate iminus/3 is true if X and Y are instantiated non empty intervals and R is the
 interval constructed according to the subtraction table for two non empty intervals. If either X
@@ -726,26 +722,23 @@ In all other cases the predicates fail.
 iminus([L1, H1], [L2, H2], [Result1, Result2]) :- 
     iplus([L1, H1]), 
     iplus([L2, H2]),
-    minus_e(L1, H2, Result1), % [a-d, b-c]
-    minus_e(H1, L2, Result2),
-    !.
+    !,
+    minus_e(L1, H2, Result1), 
+    minus_e(H1, L2, Result2).
 
 % X or Y extended real
 iminus(X, [L2, H2], [Result1, Result2]) :- 
     interval(X, SI),
-    !,
     iminus(SI, [L2, H2], [Result1, Result2]).
 
 iminus([L1, H1], Y, [Result1, Result2]) :- 
     interval(Y, SI),
-    !,
     iminus([L1, H1], SI, [Result1, Result2]).
 
 % X and Y extended real
 iminus(X, Y, Result) :- 
     interval(X, SI1),
     interval(Y, SI2),
-    !,
     iminus(SI1, SI2, Result).
 
 % The predicate itimes/1 is true if ZI is a non empty interval.
@@ -759,15 +752,17 @@ itimes(X, _) :-
     !, fail.
 
 itimes(X, R) :- 
-    itimes(X), 
-    R = X,
-    !.
+    itimes(X),
+    !,
+    R = X.
+
 itimes(X, R) :-
     extended_real(X),
     is_singleton(R),
+    !,
     iinf(R, L1),
-    X = L1, 
-    !.
+    X = L1.
+
 /* The predicate itimes/3 is true if X and Y are instantiated non empty intervals and R is the
 interval constructed according to the multiplication table for two non empty intervals. If either
 X or Y are instantiated extended reals, they are first transformed into singleton intervals.
@@ -776,6 +771,7 @@ In all other cases the predicates fail.
 itimes([L1, H1], [L2, H2], [Result1, Result2]) :- 
     itimes([L1, H1]), 
     itimes([L2, H2]),
+    !,
     times_e(L1, L2, S1),
     times_e(L1, H2, S2),
     times_e(H1, L2, S3),
@@ -783,27 +779,23 @@ itimes([L1, H1], [L2, H2], [Result1, Result2]) :-
     extended_real_min_list([S1, S2, S3, S4], Min),
     extended_real_max_list([S1, S2, S3, S4], Max),
     Result1 = Min,
-    Result2 = Max,
-    !.
+    Result2 = Max.
 
 
 % X or Y extended real
 itimes(X, [L2, H2], [Result1, Result2]) :- 
     interval(X, SI),
-    itimes(SI, [L2, H2], [Result1, Result2]),
-    !.
+    itimes(SI, [L2, H2], [Result1, Result2]).
 
 itimes([L1, H1], Y, [Result1, Result2]) :- 
     interval(Y, SI),
-    itimes([L1, H1], SI, [Result1, Result2]),
-    !.
+    itimes([L1, H1], SI, [Result1, Result2]).
 
 % X and Y extended real
 itimes(X, Y, Result) :- 
     interval(X, SI1),
     interval(Y, SI2),
-    itimes(SI1, SI2, Result),
-    !.
+    itimes(SI1, SI2, Result).
 
 /* The predicate idiv/2 is true if X is an instantiated non empty interval and R unifies with its
 reciprocal with respect to the division operation. If X is an extended real then it is first
@@ -817,18 +809,18 @@ idiv(X, _) :-
 % extended_real
 idiv(X, R) :- 
     extended_real(X),
+    !,
     interval(X, SI),  
-    idiv(SI, R),
-    !.
+    idiv(SI, R).
 
 % intervalli finiti
 idiv([L1, H1], R) :- 
     itimes([L1, H1]), 
+    !,
     div_e(L1, L2),  
     div_e(H1, H2),
     R = [H2, L2], % controllare 
-    iplus(R),
-    !.
+    iplus(R).
 
 % esempio [-2, 4] da false perche l'intervallo contiene 0 che non è invertibile
 % bisogna ritornare nil??
@@ -862,10 +854,10 @@ idiv([A, B], [0, D], [Result1, Result2]) :-
     er_max(A, 0, A),
     itimes([A, B]), 
     itimes([0, D]),
+    !,
     div_e(A, D, S1),
     Result1 = S1,
-    Result2 = pos_infinity,
-    !.
+    Result2 = pos_infinity.
 
 % gestione eccezione C = 0, N1/P e N0/P.
 idiv([A, B], [0, D], [Result1, Result2]) :- 
@@ -921,7 +913,7 @@ idiv([A, B], [C, 0], [Result1, Result2]) :-
 
 % gestione Id = M -> c<0 d>0
 
-% Id = [-X, pos_infinity], In = [Neg_infinity, Y]
+% In = [-X, pos_infinity], Id = [Neg_infinity, Y]
 idiv([A, pos_infinity], [neg_infinity, D], [Result1, Result2]) :- 
     er_min(A, 0, A),
     er_min(D, 0, D),
@@ -933,7 +925,7 @@ idiv([A, pos_infinity], [neg_infinity, D], [Result1, Result2]) :-
     Result1 = S1,
     Result2 = S2.
 
-% Id = [-X, pos_infinity], In = [Y, pos_infinity]
+% In = [-X, pos_infinity], Id = [Y, pos_infinity]
 idiv([A, pos_infinity], [C, pos_infinity], [Result1, Result2]) :- 
     er_min(A, 0, A),
     er_max(C, 0, C),
@@ -1015,21 +1007,21 @@ idiv([A, pos_infinity], [C, pos_infinity], [Result1, Result2]) :-
 idiv([neg_infinity, B], [C, pos_infinity], [Result1, Result2]) :- 
     er_max(B, 0, B),
     er_max(C, 0, C),
+    !,
     div_e(neg_infinity, C, S1),
     div_e(B, C, S3),
     Result1 = S1,
-    Result2 = S3,
-    !.
+    Result2 = S3.
 
 % In = N
 idiv([neg_infinity, B], [C, pos_infinity], [Result1, Result2]) :- 
     er_min(B, 0, B),
     er_max(C, 0, C),
+    !,
     div_e(neg_infinity, C, S1),
     div_e(B, pos_infinity, S4),
     Result1 = S1,
-    Result2 = S4,
-    !.
+    Result2 = S4.
 
 % Intervalli infiniti (ID = N)
 % In = P
