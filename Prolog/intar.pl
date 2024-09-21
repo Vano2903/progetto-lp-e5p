@@ -849,10 +849,8 @@ idiv(X, _, _) :-
 idiv(_, Y, _) :-
     var(Y),
     !, fail.
-% fine gestione delle variabili libere.
 
-%%% manca da gestire gli intervalli Z, ovvero [0,0] (non presenti in tabella).
-%%% per ora facciamo così ma bisogna controllare se è corretto.
+% gestione intervalli Z.
 idiv(_, [0, 0], _) :- 
     !, fail.
 
@@ -922,6 +920,30 @@ idiv([A, B], [C, 0], [Result1, Result2]) :-
 
 
 % gestione Id = M -> c<0 d>0
+
+% Id = [-X, pos_infinity], In = [Neg_infinity, Y]
+idiv([A, pos_infinity], [neg_infinity, D], [Result1, Result2]) :- 
+    er_min(A, 0, A),
+    er_min(D, 0, D),
+    itimes([A, pos_infinity]), 
+    itimes([neg_infinity, D]),
+    !,
+    div_e(pos_infinity, D, S1),
+    div_e(A, D, S2),
+    Result1 = S1,
+    Result2 = S2.
+
+% Id = [-X, pos_infinity], In = [Y, pos_infinity]
+idiv([A, pos_infinity], [C, pos_infinity], [Result1, Result2]) :- 
+    er_min(A, 0, A),
+    er_max(C, 0, C),
+    itimes([A, pos_infinity]), 
+    itimes([C, pos_infinity]),
+    !,
+    div_e(A, C, S1),
+    div_e(pos_infinity, C, S2),
+    Result1 = S1,
+    Result2 = S2.
 
 % In = p0
 idiv([0, B], [C, D], [Result1, Result2]) :- 

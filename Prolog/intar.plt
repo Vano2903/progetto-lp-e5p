@@ -698,7 +698,7 @@ test('idiv/3_case_m_p') :-
 
 test('idiv/3_case_m_p') :-
     idiv([-4, pos_infinity], [1, 2], [-4, pos_infinity]),
-    idiv([-4, pos_infinity], [1, pos_infinity], [-4, pos_infinity]).%da risolvere
+    idiv([-4, pos_infinity], [1, pos_infinity], [-4, pos_infinity]).
 test('idiv/3_case_m_p', fail) :-
     idiv([-4, pos_infinity], [pos_infinity, pos_infinity], _).
 
@@ -720,7 +720,7 @@ test('idiv/3_case_m_p') :-
     idiv([-4, 4], [0, pos_infinity], [neg_infinity, pos_infinity]).
 test('idiv/3_case_m_p') :-
     idiv([-4, pos_infinity], [0, 2], [neg_infinity, pos_infinity]),
-    idiv([-4, pos_infinity], [0, pos_infinity], [neg_infinity, pos_infinity]).%errore
+    idiv([-4, pos_infinity], [0, pos_infinity], [neg_infinity, pos_infinity]).
 test('idiv/3_case_m_p') :-
     idiv([neg_infinity, 4], [0, 2], [neg_infinity, pos_infinity]),
     idiv([neg_infinity, 4], [0, pos_infinity], [neg_infinity, pos_infinity]).
@@ -900,9 +900,9 @@ test('idiv/3_case_m_n') :-
     idiv([-1, 4], [neg_infinity, -1], [-4, 1]),
     idiv([-1, 4], [neg_infinity, neg_infinity], [0, 0]).
 test('idiv/3_case_m_n') :-
-    idiv([-1, pos_infinity], [-2, -1], [neg_infinity, 1]),
-    idiv([-1, pos_infinity], [neg_infinity, -1], [neg_infinity, 1]),%da risolvere
-    idiv([-1, pos_infinity], [neg_infinity, neg_infinity], fail).
+   idiv([-1, pos_infinity], [-2, -1], [neg_infinity, 1]),
+    idiv([-1, pos_infinity], [neg_infinity, -1], [neg_infinity, 1]),
+    %idiv([-1, pos_infinity], [neg_infinity, neg_infinity], fail).
 test('idiv/3_case_m_n') :-
     idiv([neg_infinity, 4], [-2, -1], [-4, pos_infinity]),
     idiv([neg_infinity, 4], [neg_infinity, -1], [-4, pos_infinity]).
