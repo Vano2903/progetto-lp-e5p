@@ -574,14 +574,13 @@ icontains(_, X) :-
     !, fail.
 
 % gestione intervalli disgiunti.
-icontains([I1, I2], X) :- 
-    is_interval([I1, I2]),
-    icontains(I1, X),
+icontains([I | _], X):- 
+    is_interval(I),
+    icontains(I, X),
     !.
-                                % non gestisce se entrambi disgiunti
-icontains([I1, I2], X) :- 
-    is_interval([I1, I2]),
-    icontains(I2, X),
+icontains([I | Is], X) :- 
+    is_interval(I),
+    icontains(Is, X),
     !.
 
 % reale esteso
@@ -591,6 +590,17 @@ icontains([L, H], X) :-
     !,
     er_min(L, X, L),
     er_max(H, X, H).
+icontains([L, H], [I]) :- 
+    is_interval([L, H]),
+    is_interval(I),
+    icontains([L, H], I),
+    !.
+icontains([L, H], [I | Is]) :- 
+    is_interval([L, H]),
+    is_interval(I),
+    icontains([L, H], I),
+    icontains([L, H], Is),
+    !.
 
 % intervallo
 icontains([L1, H1], [L2, H2]) :- 
