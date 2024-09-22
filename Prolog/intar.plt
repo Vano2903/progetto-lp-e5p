@@ -512,19 +512,19 @@ test('icontains/2_valid_disjoint') :-
 test('icontains/2_valid_disjoint') :-
     icontains([[neg_infinity, -1], [1, pos_infinity]], -2).
 test('icontains/2_valid_disjoint') :-
-    icontains([[neg_infinity, -1], [1, pos_infinity]], [[neg_infinity, -2], [4, pos_infinity]]).
+    icontains([[neg_infinity, -1], [1, pos_infinity]], pos_infinity).
+test('icontains/2_valid_disjoint') :-
+    icontains([[neg_infinity, -1], [1, pos_infinity]], neg_infinity).
+test('icontains/2_valid_disjoint') :-
+    icontains([[neg_infinity, -4], [1, pos_infinity]], [[neg_infinity, -5], [4, pos_infinity]]).
+test('icontains/2_valid_disjoint', fail) :-
+    icontains([[neg_infinity, -4], [1, pos_infinity]], [[neg_infinity, -2], [1, pos_infinity]]).
+test('icontains/2_valid_disjoint', fail) :-
+    icontains([[neg_infinity, -4], [4, pos_infinity]], [[neg_infinity, -5], [3, pos_infinity]]).
 test('icontains/2_valid_disjoint') :-
     icontains([[-1, -1], [0,1], [2,3]], [[2, 3], [0, 1]]).
 test('icontains/2_valid_disjoint', fail) :-
     icontains([[-1, -1], [0,1], [2,3]], [[2, 3], [0, 2]]).
-test('icontains/2_valid_disjoint', fail) :-
-    icontains([[-1, -1], [0,1], [0, 5]], [[neg_infinity, 3], [0, 1], [4, 5]]).
-test('icontains/2_valid_disjoint') :-
-    icontains([[-1, pos_infinity], [0,1], [0, 5]], [[1, pos_infinity], [0, 1], [4, 6]]).
-test('icontains/2_valid_disjoint') :-
-    icontains([[-1, pos_infinity], [0,1], [0, 5]], [[1, pos_infinity], [pos_infinity, pos_infinity]]).
-test('icontains/2_valid_disjoint') :-
-    icontains([[-1, pos_infinity], [neg_infinity, 2], [0, 5]], [[neg_infinity, -2], [1, pos_infinity]]).
 test('icontains/2_invalid', fail) :- 
     icontains([5, 10], 11).
 test('icontains/2_invalid', fail) :- 
