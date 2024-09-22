@@ -464,14 +464,14 @@ test('iinf/2_invalid', fail) :-
 test('iinf/2_invalid', fail) :- 
     iinf([10, 5], 10).
 %test per iinf/2 disgiunti
-/*test('iinf/2_valid_dis') :- 
+test('iinf/2_valid_dis') :- 
     iinf([[neg_infinity, -1], [1, pos_infinity]], neg_infinity).
 test('iinf/2_valid_dis') :- 
     iinf([[neg_infinity, -4], [-3, -1]], neg_infinity).
 test('iinf/2_valid_dis') :- 
     iinf([[-5, -1], [1, pos_infinity]], -5).
 test('iinf/2_valid_dis') :-
-    iinf([[4, pos_infinity], [1, 5]], 1).*/
+    iinf([[4, pos_infinity], [1, 5]], 1).
 
 % Test per isup/2
 test('isup/2_valid') :- 
@@ -480,7 +480,6 @@ test('isup/2_valid') :-
     isup([5, pos_infinity], pos_infinity).
 
 %test per isup/2 disgiunti
-/*
 test('isup/2_valid_dis') :- 
     isup([[neg_infinity, -1], [1, pos_infinity]], pos_infinity).
 test('isup/2_valid_dis') :- 
@@ -488,7 +487,7 @@ test('isup/2_valid_dis') :-
 test('isup/2_valid_dis') :- 
     isup([[-5, -1], [1, pos_infinity]], pos_infinity).
 test('isup/2_valid_dis') :- 
-    isup([[4, pos_infinity], [1, 5]], pos_infiinty).*/
+    isup([[4, pos_infinity], [1, 5]], pos_infinity).
 
 test('isup/2_invalid', fail) :- 
     isup([5, 10], 5).

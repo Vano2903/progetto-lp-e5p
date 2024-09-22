@@ -273,6 +273,15 @@ div_e(X, Y, Result) :-
 
 % fine predicati aritmetici.
 
+%logica estremo intervallo disgiunto
+% Caso base: 
+extract_estremo(_, [], []). 
+%1=L, 2=H
+extract_estremo(1, [[L, _] | T], [L | R]) :-
+    extract_estremo(1, T, R).
+extract_estremo(2, [[_, H] | T], [H | R]) :-
+    extract_estremo(2, T, R).
+
 % logica intervallare.
 % gestione intervallo vuoto.
 extended_real_min_list([], _) :- 
@@ -301,6 +310,7 @@ extended_real_min_list([X | Xs], Min) :-
     extended_real_min_list(Xs, MinXs),
     er_min(X, MinXs, Min), 
     !.
+
 
 % calcolo del minimo.
 er_min(X, X, X) :- 
@@ -387,6 +397,9 @@ er_max(X, MaxXs, MaxXs) :-
     !.
 
 % fine logica intervallare.
+
+
+
 
 /* Interval Construction and Other Predicates. The following predicates are the basis for
 the interval arithmetic operations.
@@ -520,11 +533,11 @@ is_singleton([X, X]) :-
 % The predicate iinf/2 is true if I is a non empty interval and L is its inferior limit.
 iinf([], _) :- 
     !, fail.
-
-% gestione intervalli disgiunti.
-iinf([I1, I2], X) :- 
-    is_interval([I1, I2]),
-    iinf(I1, X).
+iinf([I1 |Is], X) :- 
+    is_interval([I1 | Is]),
+    extract_estremo(1, [I1 | Is], LList),
+    extended_real_min_list(LList, X),
+    !.
 
 iinf(I, L) :-
     is_interval(I),
@@ -535,9 +548,11 @@ isup([], _) :-
     !, fail.
 
 % gestione intervalli disgiunti.
-isup([I1, I2], X) :- 
-    is_interval([I1, I2]),
-    isup(I2, X).
+isup([I1|Is], X) :- 
+    is_interval([I1 | Is]),
+    extract_estremo(2, [I1 | Is], HList),
+    extended_real_max_list(HList, X),
+    !.
 
 isup(I, H) :- 
     is_interval(I),
