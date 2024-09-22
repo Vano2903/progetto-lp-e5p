@@ -502,14 +502,12 @@ is_interval([L, H]) :-
     extended_real(H),
     er_min(L, H, L),
     !.
-% gestione intervalli disgiunti.
 
-is_interval([I1, I2]) :- 
+%intervalli disgiunti
+is_interval([I1 | I]) :-  
     is_interval(I1), 
-    is_interval(I2),
-    isup(I1, H1),
-    iinf(I2, L2),
-    er_min(H1,L2,H1).
+    is_interval(I),
+    !.
 
 % The predicate whole interval/1 is true if R is a term representing the whole interval R.
 whole_interval([neg_infinity, pos_infinity]). 

@@ -408,6 +408,11 @@ test('is_interval/1_valid') :-
     is_interval([pos_infinity, pos_infinity]),
     is_interval([neg_infinity, neg_infinity]),
     is_interval([3, 3]). % singleton
+test('is_interval/1_valid_disgiunti') :- 
+    is_interval([[neg_infinity, -1], [1, pos_infinity]]),
+    is_interval([[-5, -1], [-3, -1]]),
+    is_interval([[-5, -1], [1, pos_infinity]]),
+    is_interval([[4, pos_infinity], [1, 5]]).
 
 test('is_interval/1_invalid', fail) :- 
     is_interval([10, 5]).
@@ -458,12 +463,32 @@ test('iinf/2_invalid', fail) :-
     iinf([neg_infinity, pos_infinity], 5).
 test('iinf/2_invalid', fail) :- 
     iinf([10, 5], 10).
+%test per iinf/2 disgiunti
+/*test('iinf/2_valid_dis') :- 
+    iinf([[neg_infinity, -1], [1, pos_infinity]], neg_infinity).
+test('iinf/2_valid_dis') :- 
+    iinf([[neg_infinity, -4], [-3, -1]], neg_infinity).
+test('iinf/2_valid_dis') :- 
+    iinf([[-5, -1], [1, pos_infinity]], -5).
+test('iinf/2_valid_dis') :-
+    iinf([[4, pos_infinity], [1, 5]], 1).*/
 
 % Test per isup/2
 test('isup/2_valid') :- 
     isup([5, 10], 10),
     isup([neg_infinity, 10], 10),
     isup([5, pos_infinity], pos_infinity).
+
+%test per isup/2 disgiunti
+/*
+test('isup/2_valid_dis') :- 
+    isup([[neg_infinity, -1], [1, pos_infinity]], pos_infinity).
+test('isup/2_valid_dis') :- 
+    isup([[neg_infinity, -4], [-3, -1]], -1).
+test('isup/2_valid_dis') :- 
+    isup([[-5, -1], [1, pos_infinity]], pos_infinity).
+test('isup/2_valid_dis') :- 
+    isup([[4, pos_infinity], [1, 5]], pos_infiinty).*/
 
 test('isup/2_invalid', fail) :- 
     isup([5, 10], 5).
