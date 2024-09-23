@@ -34,7 +34,7 @@
 -
 ; true when the list is empty or every item
 ; is an extended real
-(defun is-valid-exlusion-list (i)
+(defun is-valid-exclusion-list (i)
   (cond
    ((null i) T)
    ((not (consp i)) nil)
@@ -280,7 +280,7 @@
    ;  make sense
    ;  like [1,1]\{1} doesn't make sense
    ((or (not (is-valid-interval-list intervals))
-        (not (is-valid-exlusion-list exclusions)))
+        (not (is-valid-exclusion-list exclusions)))
      (error "The provided values ~A and ~A are not valid intervals"
        intervals exclusions))
    ((and
@@ -385,7 +385,7 @@
    (T
      (and (is-valid-interval-list
             (car i))
-          (is-valid-exlusion-list
+          (is-valid-exclusion-list
             (cdr i))))))
 
 (defun is-single-interval (i)
