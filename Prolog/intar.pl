@@ -5,12 +5,9 @@
 % Vanoncini	Davide	903214
 
 
-
 % definizione di reale esteso.
 extended_real(pos_infinity) :- !.
-
 extended_real(neg_infinity) :- !.
-
 extended_real(X) :- 
     number(X).
 
@@ -19,11 +16,11 @@ extended_real(X) :-
 % The plus e/1 predicate is true with the unit of the summation operation.
 plus_e(0).
 
-/* The plus e/2 predicate is true when Result is an extended real that unifies with X. X must be
-instantiated and must be an extended real. Otherwise the predicate fails. 
+/* The plus e/2 predicate is true when Result is an extended real that 
+unifies with X. X must be instantiated and must be an extended real. 
+Otherwise the predicate fails. 
 */
-% gestione delle variabili libere.
-plus_e(X, _) :- 
+plus_e(X, _) :- %gestione delle variabili libere
     var(X),
     !, fail.
 
@@ -31,11 +28,11 @@ plus_e(X, Result) :-
     extended_real(X),
     Result = X.
 
-/* The plus e/3 predicate is true when Result is the extended real sum of X and Y, which must
-both be instantiated extended reals. Otherwise the predicate fails.
+/* The plus e/3 predicate is true when Result is the extended real sum 
+of X and Y, which must both be instantiated extended reals. 
+Otherwise the predicate fails.
 */
-% gestione delle variabili libere.
-plus_e(X, _, _) :- 
+plus_e(X, _, _) :-  %gestione delle variabili libere
     var(X), 
     !, fail.
 
@@ -62,12 +59,12 @@ plus_e(X, Y, Result) :-
     extended_real(Y), 
     Result is X + Y.
 
-/* The minus e/2 predicate is true when Result is an extended real that is the reciprocal of X with
-respect to summation. X must be instantiated and must be an extended real. Otherwise the
-predicate fails. 
+/* The minus e/2 predicate is true when Result is an extended real that 
+is the reciprocal of X with respect to summation. 
+X must be instantiated and must be an extended real. 
+Otherwise the predicate fails. 
 */
-% gestione delle variabili libere.
-minus_e(X, _) :- 
+minus_e(X, _) :-  %gestione delle variabili libere
     var(X), 
     !, fail.
 
@@ -82,11 +79,11 @@ minus_e(X, Result) :-
     Result is - X.
 
 
-/* The minus e/3 predicate is true when Result is the extended real subtraction of Y from X, which
-must both be instantiated extended reals. Otherwise the predicate fails.
+/* The minus e/3 predicate is true when Result is the extended real 
+subtraction of Y from X, which must both be instantiated extended reals. 
+Otherwise the predicate fails.
 */
-% gestione delle variabili libere.
-minus_e(X, _, _) :-
+minus_e(X, _, _) :- %gestione delle variabili libere
     var(X), 
     !, fail.
 
@@ -116,17 +113,18 @@ minus_e(X, Y, Result) :-
 % The times e/1 predicate is true with the unit of the summation operation.
 times_e(1).
 
-/* The times e/2 predicate is true when Result is an extended real that unifies with X. X must be
-instantiated and must be an extended real. Otherwise the predicate fails.
+/* The times e/2 predicate is true when Result is an extended real 
+that unifies with X. X must be instantiated and must be an extended real. 
+Otherwise the predicate fails.
 */
 times_e(X, Y) :- 
     plus_e(X, Y).
 
-/* The times e/3 predicate is true when Result is the extended real multiplication of X and Y,
-which must both be instantiated extended reals. Otherwise the predicate fails.
+/* The times e/3 predicate is true when Result is the extended real 
+multiplication of X and Y, which must both be instantiated extended reals. 
+Otherwise the predicate fails.
 */
-% gestione delle variabili libere.
-times_e(X, _, _) :-
+times_e(X, _, _) :- %gestione delle variabili libere
     var(X), 
     !, fail.
 
@@ -191,12 +189,12 @@ times_e(X, Y, Result) :-
     extended_real(Y), 
     Result is X * Y.
 
-/* The div e/2 predicate is true when Result is an extended real that is the reciprocal of X with
-respect to multiplication. X must be instantiated and must be an extended real. Otherwise the
-predicate fails.
+/* The div e/2 predicate is true when Result is an extended real that is 
+the reciprocal of X with respect to multiplication. 
+X must be instantiated and must be an extended real. 
+Otherwise the predicate fails.
 */
-% gestione delle variabili libere.
-div_e(X, _) :-
+div_e(X, _) :- %gestione delle variabili libere
     var(X), 
     !, fail.
 
@@ -213,11 +211,11 @@ div_e(X, Result) :-
     extended_real(X),
     Result is 1 / X.
 
-/* The div e/3 predicate is true when Result is the extended real subtraction of Y from X, which
-must both be instantiated extended reals. Otherwise the predicate fails.
+/* The div e/3 predicate is true when Result is the extended real 
+subtraction of Y from X, which must both be instantiated extended reals. 
+Otherwise the predicate fails.
 */
-% gestione delle variabili libere.
-div_e(X, _, _) :-
+div_e(X, _, _) :- %gestione delle variabili libere
     var(X), 
     !, fail.
 
@@ -273,22 +271,17 @@ div_e(X, Y, Result) :-
 
 % fine predicati aritmetici.
 
-%logica estremo intervallo disgiunto
-% Caso base: 
-extract_estremo(_, [], []). 
-%1=L, 2=H
-extract_estremo(1, [[L, _] | T], [L | R]) :-
+extract_estremo(_, [], []).  % caso base.
+extract_estremo(1, [[L, _] | T], [L | R]) :- % 1 per l'estremo inferiore.
     extract_estremo(1, T, R).
-extract_estremo(2, [[_, H] | T], [H | R]) :-
+extract_estremo(2, [[_, H] | T], [H | R]) :- % 2 per l'estremo superiore.
     extract_estremo(2, T, R).
 
 % logica intervallare.
-% gestione intervallo vuoto.
 extended_real_min_list([], _) :- 
     !, fail.
 
-% gestione delle variabili libere.
-extended_real_min_list([X], _) :-
+extended_real_min_list([X], _) :- % gestione delle variabili libere.
     var(X),
     !, fail.
 
@@ -296,8 +289,7 @@ extended_real_min_list([X | _], _) :-
     var(X),
     !, fail.
 
-% Caso base.
-extended_real_min_list([X], X) :-
+extended_real_min_list([X], X) :- % Caso base.
     extended_real(X).
 
 % Caso ricorsivo con pos_infinity.
@@ -310,7 +302,6 @@ extended_real_min_list([X | Xs], Min) :-
     extended_real_min_list(Xs, MinXs),
     er_min(X, MinXs, Min), 
     !.
-
 
 % calcolo del minimo.
 er_min(X, X, X) :- 
@@ -340,12 +331,10 @@ er_min(X, MinXs, MinXs) :-
     X > MinXs,
     !.
 
-% gestione intervallo vuoto.
-extended_real_max_list([], _) :- 
+extended_real_max_list([], _) :-  % gestione intervallo vuoto.
     !, fail.
 
-% gestione delle variabili libere.
-extended_real_max_list([X], _) :-
+extended_real_max_list([X], _) :- % gestione delle variabili libere.
     var(X),
     !, fail.
 
@@ -398,12 +387,7 @@ er_max(X, MaxXs, MaxXs) :-
 
 % fine logica intervallare.
 
-
-
-
-/* Interval Construction and Other Predicates. The following predicates are the basis for
-the interval arithmetic operations.
-*/
+% interval arithmetic operations.
 
 % This predicate is true only of the empty interval [].
 empty_interval([]).
@@ -411,33 +395,26 @@ empty_interval([]).
 % The predicate interval/1 serves to construct an empty interval.
 interval([]).
 
-/* The predicate interval/2 constructs a singleton interval SI containing only X. X must be
-instantiated and be an extended real, otherwise the predicate fails.
+/* The predicate interval/2 constructs a singleton interval SI containing 
+only X. X must be instantiated and be an extended real, 
+otherwise the predicate fails.
 */
-% gestione delle variabili libere.
-interval(X, _) :- 
+interval(X, _) :- % gestione delle variabili libere.
     var(X),
     !, fail.
 % fine gestione delle variabili libere.
 
-% gestione dell'infinito per i singleton.
-/*interval(neg_infinity, _) :- 
-    !, fail.
-interval(pos_infinity, _) :- 
-    !, fail.*/
-
-% creazione di un intervallo singleton.
-interval(X, SI) :- 
+interval(X, SI) :-  % crea un intervallo singleton.
     extended_real(X),
     !,
     SI = [X, X].
 
-/* The predicate interval/3 constructs an interval I with L as inferior point and H as superior
-point. L and H must be instantiated and be extended reals, otherwise the predicate fails. Note
-that I can be the empty interval if L > H.
+/* The predicate interval/3 constructs an interval I with L as inferior 
+point and H as superior point. L and H must be instantiated and be 
+extended reals, otherwise the predicate fails. 
+Note that I can be the empty interval if L > H.
 */ 
-% gestione delle variabili libere.
-interval(L, _, _) :-
+interval(L, _, _) :- % gestione delle variabili libere.
     var(L),
     !, fail. 
 
@@ -445,94 +422,54 @@ interval(_, H, _) :-
     var(H),
     !, fail.
 
-% creazione di un intervallo singleton specificando 3 argomenti.
-interval(X, X, SI) :- 
-    interval(X, SI), !.
-
-% creazione di un intervallo standard con infinito.
-interval(neg_infinity, H, I) :-
-    extended_real(H),
-    !,
-    I = [neg_infinity, H].
-
-interval(L, pos_infinity, I) :-
-    extended_real(L),
-    !,
-    I = [L, pos_infinity].
-
-% creazione di un intervallo vuoto (L > H).
-interval(L, neg_infinity, I) :-
-    extended_real(L),
-    !,
-    I = [].
-
-interval(pos_infinity, H, I) :-
-    extended_real(H),
-    !,
-    I = [].
-
+% creazione di un intervallo standard.
 interval(L, H, I) :- 
-    extended_real(L),
-    extended_real(H),
-    L > H,
+    er_min(L, H, L),
     !,
-    I = [].
-
-% creazione di un intervallo standard con numeri reali.
-interval(L, H, I) :- 
-    extended_real(L),
-    extended_real(H),
     I = [L, H].
 
-/* The predicate is interval/1 is true if I is a term representing an interval (including the empty
-interval).
-*/
+interval(L, H, I) :- % creazione di un intervallo vuoto.
+    er_max(L, H, L),
+    !,
+    I = [].
 
-% gestione delle variabili libere.
-is_interval([X, _]) :- 
+/* The predicate is interval/1 is true if I is a term representing an 
+interval (including the empty interval).
+*/
+is_interval([X, _]) :-  % gestione delle variabili libere.
     var(X),
     !, fail.
 
 is_interval([_, Y]) :-
     var(Y),
     !, fail.
-% fine gestione delle variabili libere.
-
-is_interval([neg_infinity, neg_infinity]) :- !.
-
-is_interval([pos_infinity, pos_infinity]) :- !.
-
-is_interval([pos_infinity, _]) :- 
-    !, fail.
-
-is_interval([_, neg_infinity]) :- 
-    !, fail.
 
 is_interval([]) :- !.
 
 is_interval([L, H]) :- 
-%    extended_real(L),
-%    extended_real(H),
     er_min(L, H, L),
     !.
 
-%intervalli disgiunti
-is_interval([I1 | I]) :-  
+is_interval([I1 | I]) :-  % gestione intervalli disgiunti.
     is_interval(I1), 
     is_interval(I),
     !.
 
-% The predicate whole interval/1 is true if R is a term representing the whole interval R.
+/* The predicate whole interval/1 is true if R is a term representing the 
+whole interval R. */
 whole_interval([neg_infinity, pos_infinity]). 
 
-% The predicate is singleton/1 is true if S is a term representing a singleton interval.
+/* The predicate is singleton/1 is true if S is a term representing a 
+singleton interval. */
 is_singleton([X, X]) :-
     is_interval([X, X]),
     !.
 
-% The predicate iinf/2 is true if I is a non empty interval and L is its inferior limit.
+/* The predicate iinf/2 is true if I is a non empty interval and L is its 
+ inferior limit. */
 iinf([], _) :- 
     !, fail.
+
 iinf([I1 |Is], X) :- 
     is_interval([I1 | Is]),
     extract_estremo(1, [I1 | Is], LList),
@@ -543,12 +480,12 @@ iinf(I, L) :-
     is_interval(I),
     I = [L, _].
 
-% The predicate isup/2 is true if I is a non empty interval and H is its superior limit.
+/* The predicate isup/2 is true if I is a non empty interval and H is its 
+superior limit.*/
 isup([], _) :- 
     !, fail.
 
-% gestione intervalli disgiunti.
-isup([I1|Is], X) :- 
+isup([I1|Is], X) :-  % gestione intervalli disgiunti.
     is_interval([I1 | Is]),
     extract_estremo(2, [I1 | Is], HList),
     extended_real_max_list(HList, X),
@@ -558,8 +495,9 @@ isup(I, H) :-
     is_interval(I),
     I = [_, H].
 
-/* If I is not an interval, or if it is an empty interval, the predicate fails. Otherwise, given the
-interval I it will succeed if I contains X. X can be a number or another interval.
+/* If I is not an interval, or if it is an empty interval, the predicate 
+fails. Otherwise, given the interval I it will succeed if I contains X. 
+X can be a number or another interval.
 */ 
 % fail cases
 icontains([], _) :- 
@@ -573,19 +511,16 @@ icontains(_, X) :-
     var(X), 
     !, fail.
 
-% gestione intervalli disgiunti.
-icontains([I | _], X):- 
-%    is_interval(I),
+icontains([I | _], X):- %gestione intervalli disgiunti.
     icontains(I, X),
     !.
+
 icontains([I | Is], X) :- 
     is_interval(I),
     icontains(Is, X),
     !.
 
 icontains(I1, [I2]) :- 
-%    is_interval(I1),
-%    is_interval(I2),
     icontains(I1, I2),
     !.
 
@@ -596,26 +531,23 @@ icontains(I1, [I2 | I2s]) :-
     icontains(I1, I2s),
     !.
 
-% reale esteso
-icontains([L, H], X) :- 
+icontains([L, H], X) :- % reale esteso
     is_interval([L, H]),
     extended_real(X),
     !,
     er_min(L, X, L),
     er_max(H, X, H).
 
-% intervallo
 icontains([L1, H1], [L2, H2]) :- 
     is_interval([L1, H1]),
     is_interval([L2, H2]),
     er_min(L1, L2, L1),
     er_max(H1, H2, H1).
 
-/* The predicate ioverlap succeeds if the two intervals I1 and I2 “overlap”. The predicate fails
-if either I1 or I2 is not an interval.
+/* The predicate ioverlap succeeds if the two intervals I1 and I2 
+“overlap”. The predicate fails if either I1 or I2 is not an interval.
 */
-% gestione intervalli disgiunti. 
-ioverlap(I1, I2) :-
+ioverlap(I1, I2) :- % gestione intervalli disgiunti.
     icontains(I1, I2), !.
 
 ioverlap([I | _], X) :-
@@ -626,8 +558,6 @@ ioverlap([I | Is], X) :-
     ioverlap(Is, X), !.
 
 ioverlap(I1, [I2]) :- 
-%    is_interval(I1),
-%    is_interval(I2),
     ioverlap(I1, I2), !.
 
 ioverlap(I1, [I2 | I2s]) :- 
@@ -642,31 +572,28 @@ ioverlap([L1, H1], [L2, H2]) :-
     er_min(L1, H2, L1),
     er_max(H1, L2, H1).
 
-/* Interval Arithmetic Predicates. The following predicates implement the interval arithmetic
-operations.
-*/
+% Interval Arithmetic Predicates. 
 
 % The predicate iplus/1 is true if ZI is a non empty interval.
 iplus([]) :- !, fail.
 
 iplus(ZI) :- !, is_interval(ZI).
 /*
-The predicate iplus/2 is true if X is an instantiated non empty interval and R unifies with it,
-or if X is an instantiated extended real and R is a singleton interval containing only X.
+The predicate iplus/2 is true if X is an instantiated non empty interval 
+and R unifies with it, or if X is an instantiated extended real and R is a 
+singleton interval containing only X.
 */
 
-% gestione delle variabili libere.
-iplus(X, _) :- 
+iplus(X, _) :-  % gestione delle variabili libere.
     var(X),
     !, fail.
-% fine gestione delle variabili libere.
 
-iplus(X, R) :- 
+iplus(X, R) :- % interval
     iplus(X),
     !,
     R = X.
 
-iplus(X, R) :-                  
+iplus(X, R) :-  % extended real       % warning iplus(2, R) -> R = [2, 2]
     extended_real(X),
     is_singleton(R),
     !,
@@ -674,14 +601,14 @@ iplus(X, R) :-
     X = L1.
 
 /* 
-The predicate iplus/3 is true if X and Y are instantiated non empty intervals and R is the
-interval constructed according to the summation table for two non empty intervals. If either X
-or Y are instantiated extended reals, they are first transformed into singleton intervals.
+The predicate iplus/3 is true if X and Y are instantiated non empty 
+intervals and R is the interval constructed according to the summation 
+table for two non empty intervals. If either X or Y are instantiated 
+extended reals, they are first transformed into singleton intervals.
 In all other cases the predicates fail.
 */
 
-% somma intervalli
-iplus([L1, H1], [L2, H2], [Result1, Result2]) :- 
+iplus([L1, H1], [L2, H2], [Result1, Result2]) :- % somma intervalli 
     extended_real(L1),
     extended_real(L2),
     iplus([L1, H1]), 
@@ -689,17 +616,16 @@ iplus([L1, H1], [L2, H2], [Result1, Result2]) :-
     !,
     plus_e(L1, L2, Result1),
     plus_e(H1, H2, Result2).
-% somma reale ed intervallo
-iplus(X, [L2, H2], [Result1, Result2]) :- 
+
+iplus(X, [L2, H2], [Result1, Result2]) :- % somma reale intervallo
     interval(X, SI),
     iplus(SI, [L2, H2], [Result1, Result2]).
 
-iplus([L1, H1], Y, [Result1, Result2]) :- 
+iplus([L1, H1], Y, [Result1, Result2]) :-  
     interval(Y, SI),
     iplus([L1, H1], SI, [Result1, Result2]).
 
-% somma reale reale
-iplus(X, Y, Result) :- 
+iplus(X, Y, Result) :-  % somma reale reale
     interval(X, SI1),
     interval(Y, SI2),
     iplus(SI1, SI2, Result).
@@ -725,39 +651,36 @@ iplus([I1 | I1s], [I2 | I2s], [Result | Results]) :-
     iplus(I1, I2, Result),
     iplus(I1s, I2s, Results), !.
 
-/* The predicate iminus/2 is true if X is an instantiated non empty interval and R unifies with
-its reciprocal with respect to the summation operation. If X is an extended real then it is first
-transformed into a singleton interval. */
+/* The predicate iminus/2 is true if X is an instantiated non empty 
+interval and R unifies with its reciprocal with respect to the summation
+operation. If X is an extended real then it is first transformed into a 
+singleton interval. */
 
-% gestione delle variabili libere.
-iminus(X, _) :- 
+iminus(X, _) :- % gestione delle variabili libere.
     var(X),
     !, fail.
-% fine gestione delle variabili libere.
 
-% extended real
-iminus(X, R) :- 
+iminus(X, R) :-  % extended real
     extended_real(X),
     interval(X, SI),  
     !,
     iminus(SI, R).
 
-% intervalli finiti
-iminus([L1, H1], R) :- 
+iminus([L1, H1], R) :- % intervalli finiti
     iplus([L1, H1]), 
     minus_e(L1, L2),  
     minus_e(H1, H2),
     R = [H2, L2],
     iplus(R).
 
-/* The predicate iminus/3 is true if X and Y are instantiated non empty intervals and R is the
-interval constructed according to the subtraction table for two non empty intervals. If either X
-or Y are instantiated extended reals, they are first transformed into singleton intervals.
+/* The predicate iminus/3 is true if X and Y are instantiated non empty 
+intervals and R is the interval constructed according to the subtraction 
+table for two non empty intervals. If either X or Y are instantiated 
+extended reals, they are first transformed into singleton intervals.
 In all other cases the predicates fail.
 */
 
-% differenza intervalli finiti
-iminus([L1, H1], [L2, H2], [Result1, Result2]) :- 
+iminus([L1, H1], [L2, H2], [Result1, Result2]) :- % intervalli 
     extended_real(L1),
     extended_real(L2),
     iplus([L1, H1]), 
@@ -807,8 +730,9 @@ iminus([I1 | I1s], [I2 | I2s], [Result | Results]) :-
 itimes([]):- !, fail.
 itimes(ZI):- !, is_interval(ZI).
 
-/* The predicate itimes/2 is true if X is an instantiated non empty interval and R unifies with it,
-or if X is an instantiated extended real and R is a singleton interval containing only X. */
+/* The predicate itimes/2 is true if X is an instantiated non empty 
+interval and R unifies with it, or if X is an instantiated extended real 
+and R is a singleton interval containing only X. */
 itimes(X, _) :- 
     var(X),
     !, fail.
@@ -825,9 +749,11 @@ itimes(X, R) :-
     iinf(R, L1),
     X = L1.
 
-/* The predicate itimes/3 is true if X and Y are instantiated non empty intervals and R is the
-interval constructed according to the multiplication table for two non empty intervals. If either
-X or Y are instantiated extended reals, they are first transformed into singleton intervals.
+/* The predicate itimes/3 is true if X and Y are instantiated non empty 
+intervals and R is the interval constructed according to the multiplication 
+table for two non empty intervals. 
+If either X or Y are instantiated extended reals, they are first 
+transformed into singleton intervals. 
 In all other cases the predicates fail.
 */
 itimes([L1, H1], [L2, H2], [Result1, Result2]) :- 
@@ -844,7 +770,6 @@ itimes([L1, H1], [L2, H2], [Result1, Result2]) :-
     extended_real_max_list([S1, S2, S3, S4], Max),
     Result1 = Min,
     Result2 = Max.
-
 
 % X or Y extended real
 itimes(X, [L2, H2], [Result1, Result2]) :- 
@@ -883,44 +808,41 @@ itimes([I1 | I1s], [I2 | I2s], [Result | Results]) :-
     itimes(I1s, I2s, Results), !.
 
 
-/* The predicate idiv/2 is true if X is an instantiated non empty interval and R unifies with its
-reciprocal with respect to the division operation. If X is an extended real then it is first
-transformed into a singleton interval. */
+/* The predicate idiv/2 is true if X is an instantiated non empty interval 
+and R unifies with its reciprocal with respect to the division operation. 
+If X is an extended real then it is first transformed into a singleton 
+interval. */
 
-% gestione delle variabili libere
-idiv(X, _) :- 
+idiv(X, _) :- % gestione delle variabili libere.
     var(X),
     !, fail.
 
-% extended_real
-idiv(X, R) :- 
+idiv(X, R) :- % extended real
     extended_real(X),
     !,
     interval(X, SI),  
     idiv(SI, R).
 
-% intervalli finiti
-idiv([L1, H1], R) :- 
+idiv([L1, H1], R) :- % intervalli finiti
     itimes([L1, H1]), 
     !,
     div_e(L1, L2),  
     div_e(H1, H2),
-    R = [H2, L2], % controllare 
+    R = [H2, L2], 
     iplus(R).
 
-% esempio [-2, 4] da false perche l'intervallo contiene 0 che non è invertibile
-% bisogna ritornare nil??
+%warning interalli negativi
 idiv(_, _):- 
     !, fail.
 
-/* The predicate idiv/3 is true if X and Y are instantiated non empty intervals and R is the
-interval constructed according to the division table for two non empty intervals. If either X or
-Y are instantiated extended reals, they are first transformed into singleton intervals.
+/* The predicate idiv/3 is true if X and Y are instantiated non empty 
+intervals and R is the interval constructed according to the division table 
+for two non empty intervals. If either X or Y are instantiated extended 
+reals, they are first transformed into singleton intervals.
 In all other cases the predicates fail.
 */
 
-% gestione delle variabili libere.
-idiv(X, _, _) :- 
+idiv(X, _, _) :-  % gestione delle variabili libere.
     var(X),
     !, fail.
 
@@ -928,8 +850,7 @@ idiv(_, Y, _) :-
     var(Y),
     !, fail.
 
-% gestione intervalli Z.
-idiv(_, [0, 0], _) :- 
+idiv(_, [0, 0], _) :-  % gestione Z
     !, fail.
 
 idiv([0, 0], _, [0, 0]) :- 

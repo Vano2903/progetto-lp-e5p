@@ -362,6 +362,7 @@ test('interval/2_singleton') :-
     interval(neg_infinity, [neg_infinity, neg_infinity]),
     interval(pos_infinity, [pos_infinity, pos_infinity]).
 
+
 % Test con fallimento su variabile libera (deve fallire)
 test('interval/2_fail_variable', fail) :- 
     interval(_, _).
@@ -377,11 +378,15 @@ test('interval/3_equal_bounds') :-
     interval(-3, 2, [-3, 2]),
     interval(neg_infinity, neg_infinity, [neg_infinity, neg_infinity]),
     interval(pos_infinity, pos_infinity, [pos_infinity, pos_infinity]),
-    interval(neg_infinity, pos_infinity, [neg_infinity, pos_infinity]).
+    interval(neg_infinity, pos_infinity, [neg_infinity, pos_infinity]),
+    interval(0, 0, [0, 0]),
+    interval(neg_infinity, -2, [neg_infinity, -2]),
+    interval(2, pos_infinity, [2, pos_infinity]).
 
 % Test con intervallo vuoto (inferiore maggiore del superiore)
 test('interval/3_empty_interval') :- 
     interval(5, 3, []),
+    interval(-3, -5, []),
     interval(pos_infinity, 2, []),
     interval(-2, neg_infinity, []),
     interval(pos_infinity, neg_infinity, []).
