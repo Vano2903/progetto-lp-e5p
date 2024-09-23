@@ -17,12 +17,18 @@
 ; (defun is-zero-in-interval (i)
 ;   (and (<= (inf i) 0) (>= (sup i) 0)))
 ;!===== validation functions =====!
-
+; checks if x is a real number
+; if not returns an error message
+; name can be used to specify the name of the variable
 (defun validate-real-extended-number (x name)
   (if (not (is-extended-real x))
       (error "value ~a is invalid, 
             ~a must be an extended real number" x name)))
 
+; checks if x is a valid interval or an extended real
+; if it's none of the two returns an error message
+; if it's a valid extended real it returns the
+; singleton containing the extended real
 (defun validate-parse-interval-operation-parameter (x)
   (if (not (or (is-interval x)
                (is-extended-real x)))
@@ -31,8 +37,8 @@
   (if (is-extended-real x)
       (interval x)
       x))
--
-; true when the list is empty or every item
+
+; checks if a list is empty or every item
 ; is an extended real
 (defun is-valid-exclusion-list (i)
   (cond
@@ -41,8 +47,9 @@
    (T
      (every #'is-extended-real i))))
 
-; true when the list is empty or every item
-; is a cons interval
+; checks if the list is empty or every item
+; is a cons interval or the empty interval
+; the definition of cons interval is in the documentation
 (defun is-valid-interval-list (i)
   (cond
    ((null i) T)
@@ -55,15 +62,20 @@
          i))))
 
 ;!===== extended reals =====!
-; extended reals definitions
+;!======= extended reals definitions
+
+; checks if x is either +neg-infinity+ or +pos-infinity+
 (defun is-infinity (x)
   (or (eq x +neg-infinity+) (eq x +pos-infinity+)))
 
+; checks if x is a number or infinity
 (defun is-extended-real (x)
   (or (numberp x) (is-infinity x)))
 
-; extended real comparisons
-; x > y
+;!======= extended real comparisons
+
+; checks if x is greater than y
+; if x or y are not extended reals returns nil
 (defun extended-real-gt (x y)
   (cond
    ((or (not (is-extended-real x))
@@ -79,54 +91,102 @@
    (T (> x y))))
 
 ; x == y
+; checks if x is equal to y
+; if x or y are not extended reals returns nil
 (defun extended-real-eq (x y)
   (if (and (is-extended-real x) (is-extended-real y))
       (eq x y)))
 
+; if is-min is T it returns the lowest extended-real
+; of the list otherwise it returns the highest
+; this function suppose that the list is made of
+; extended reals
+(defun extended-real-min-max-filtered (find-min x &rest xs)
+  (if (null xs)
+      x
+      (let ((rest-min-max
+             (apply #'extended-real-min-max-filtered find-min xs)))
+        (if (not find-min)
+            (if (extended-real-gt x rest-min-max)
+                x
+                rest-min-max)
+            (if (extended-real-gt x rest-min-max)
+                rest-min-max
+                x)))))
+
+
+; the function filters any non extended-real value
+; and returns the lowest value if find-min is T
+; otherwise the highest value
+; if no value was found it returns nil
+(defun extended-real-min-max (find-min x &rest xs)
+  (let ((filtered-list
+         (remove-if-not #'is-extended-real (cons x xs))))
+    (if (null filtered-list)
+        nil
+        (apply #'extended-real-min-max-filtered
+            find-min
+          filtered-list))))
+
+; returns the lowest extended-real of the list
+; if no extended-real is found it returns nil
 (defun extended-real-min (x &rest xs)
-  (if (null xs)
-      x
-      (let ((rest-min (apply #'extended-real-min xs)))
-        (if (extended-real-gt x rest-min)
-            rest-min
-            x))))
+  (apply #'extended-real-min-max T x xs))
 
+; returns the highest extended-real of the list
+; if no extended-real is found it returns nil
 (defun extended-real-max (x &rest xs)
-  (if (null xs)
-      x
-      (let ((rest-max (apply #'extended-real-max xs)))
-        (if (extended-real-gt x rest-max)
-            x
-            rest-max))))
+  (apply #'extended-real-min-max nil x xs))
 
-; operation tables 
+;!======= operation tables 
+
+; this function return the sum of x and y 
+; considering the extended real numbers
+; if the sum is not defined it returns nil
+; if x or y are not extended reals it returns an error
+; signalling which variable is not an extended real
 (defun extended-real-sum (x y)
   (validate-real-extended-number x "X")
   (validate-real-extended-number y "Y")
-
   (cond
-   ((and (numberp x) (numberp y)) (+ x y))
+   ((and (numberp x) (numberp y))
+     (+ x y))
    ((or (and (eq x +neg-infinity+)
              (eq y +pos-infinity+))
         (and (eq x +pos-infinity+)
-             (eq y +neg-infinity+))) nil)
+             (eq y +neg-infinity+)))
+     nil)
    ((eq x +neg-infinity+) +neg-infinity+)
    ((eq y +neg-infinity+) +neg-infinity+)
    ((eq x +pos-infinity+) +pos-infinity+)
    ((eq y +pos-infinity+) +pos-infinity+)))
 
+; this function return the difference of x and y 
+; considering the extended real numbers
+; if the difference is not defined it returns nil
+; if x or y are not extended reals it returns an error
+; signalling which variable is not an extended real
 (defun extended-real-sub (x y)
   (validate-real-extended-number x "X")
   (validate-real-extended-number y "Y")
   (cond
-   ((and (numberp x) (numberp y)) (- x y))
-   ((or (and (eq x +neg-infinity+) (eq y +neg-infinity+))
-        (and (eq x +pos-infinity+) (eq y +pos-infinity+))) nil)
+   ((and (numberp x) (numberp y))
+     (- x y))
+   ((or (and (eq x +neg-infinity+)
+             (eq y +neg-infinity+))
+        (and (eq x +pos-infinity+)
+             (eq y +pos-infinity+)))
+     nil)
    ((eq x +neg-infinity+) +neg-infinity+)
    ((eq y +neg-infinity+) +pos-infinity+)
    ((eq x +pos-infinity+) +pos-infinity+)
    ((eq y +pos-infinity+) +neg-infinity+)))
 
+; this function return the multiplication of x and y 
+; considering the extended real numbers
+; if the multiplication is not defined it returns nil
+; if x or y are not extended reals it returns an error
+; signalling which variable is not an extended real
 (defun extended-real-mul (x y)
   (validate-real-extended-number x "X")
   (validate-real-extended-number y "Y")
@@ -155,8 +215,14 @@
             +pos-infinity+
             +neg-infinity+))))
    ((is-infinity y)
+     ;  commutative property
      (extended-real-mul y x))))
 
+; this function return the division of x and y 
+; considering the extended real numbers
+; if the division is not defined it returns nil
+; if x or y are not extended reals it returns an error
+; signalling which variable is not an extended real
 (defun extended-real-div (x y)
   (validate-real-extended-number x "X")
   (validate-real-extended-number y "Y")
@@ -166,13 +232,15 @@
    ((or (and (eq x +neg-infinity+)
              (eq y +neg-infinity+))
         (and (eq x +pos-infinity+)
-             (eq y +pos-infinity+))) nil)
+             (eq y +pos-infinity+)))
+     nil)
    ;  it could be incorporated in the "or"
    ;  but it's more readable this way
    ((or (and (eq x +pos-infinity+)
              (eq y +neg-infinity+))
         (and (eq x +neg-infinity+)
-             (eq y +pos-infinity+))) nil)
+             (eq y +pos-infinity+)))
+     nil)
    ((eq x +neg-infinity+)
      (if (> y 0)
          +neg-infinity+
@@ -182,9 +250,12 @@
          +pos-infinity+
          +neg-infinity+))
    ((or (eq y +neg-infinity+)
-        (eq y +pos-infinity+)) 0)))
+        (eq y +pos-infinity+))
+     0)))
 
-; find the reciprocal of x by subtracting x from o
+; find the complement of x by subtracting x from o
+; if the complement is not defined an error is
+; signalled 
 (defun sub-reciprocal (x)
   (let ((result (extended-real-sub 0 x)))
     (if (or (null result)
@@ -193,6 +264,8 @@
         result)))
 
 ; find the reciprocal of x by dividing 1 by x
+; if the reciprocal is not defined an error is
+; signalled 
 (defun div-reciprocal (x)
   (let ((result (extended-real-div 1 x)))
     (if (or (null result)
@@ -201,6 +274,11 @@
         result)))
 
 ;!===== interval functions =====!
+; checks if an interval is a well defined 
+; cons interval
+; a cons interval is defined in the documentation
+; this function returns nil if the interval is not
+; or if it's the empty interval
 (defun is-cons-interval (i)
   (if (not (consp i))
       nil
@@ -256,6 +334,11 @@
    (T
      (sup-list (cdr i)))))
 
+; this function creates a cons interval
+; if h is not provided it returns a singleton interval
+; if h < l it returns the empty interval
+; otherwise it returns the cons interval
+; it returns an error if l or h are not extended reals
 (defun cons-interval (l &optional h)
   (cond
    ((null h)
@@ -271,6 +354,12 @@
    (T (error "The provided values ~A and ~A are not valid extended reals"
         l h))))
 
+; this function creates a complex interval
+; it can handle empty intervals, singletons, single intervals,
+; disjoint intervals and intervals with exclusion points
+; if exclusion points and intervals are nil it returns the empty interval
+; if intervals and exclusion points are not valid it returns an error
+; (checks is-valid-interval-list and is-valid-exclusion-list functions)
 (defun extended-interval (exclusions &rest intervals)
   (cond
    ((and (null exclusions)
@@ -289,13 +378,16 @@
      (empty-interval))
    (T (cons intervals exclusions))))
 
-; get-interval-list and get-exclusion-list
-; are not necessary but they make the code more readable
+;* get-interval-list and get-exclusion-list
+;* are not necessary but they make the code more readable
+
+; returns the list of intervals given an interval
 (defun get-interval-list (i)
   (if (is-interval i)
       (car i)
       (error "The provided value ~A is not an interval" i)))
 
+; returns the list of exclusion points given an interval
 (defun get-exclusion-list (i)
   (if (is-interval i)
       (cdr i)
@@ -304,24 +396,45 @@
 
 ; if 0 args return 0
 ; if 2 args return the sum of the args
+
+; executes the sum of x and y if both are extended reals
+; otherwise it returns an error
+; if no arguments are provided it returns 0
+; if only one argument is provided it returns the argument
+; if the sum is not defined it returns an error
 (defun +e (&optional x y)
   (cond
    ((and (null x) (null y)) 0)
-   ((null y) x)
+   ((null y)
+     (if (is-extended-real x)
+         x
+         (error "The provided value ~A must be an extended real" x)))
    (T (let ((result (extended-real-sum x y)))
         (if (null result)
             (error "The sum of ~a and ~a is not defined" x y)
             result)))))
 
+; executes the multiplication of x and y if both are extended reals
+; otherwise it returns an error
+; if no arguments are provided it returns 0
+; if only one argument is provided it returns the argument
+; if the multiplication is not defined it returns an error
 (defun *e (&optional x y)
   (cond
    ((and (null x) (null y)) 1)
-   ((null y) x)
+   ((null y)
+     (if (is-extended-real x)
+         x
+         (error "The provided value ~A must be an extended real" x)))
    (T (let ((result (extended-real-mul x y)))
         (if (null result)
             (error "The multiplication of ~a and ~a is not defined" x y)
             result)))))
 
+; executes the difference of x and y if both are extended reals
+; otherwise it returns an error
+; if one argument is provided it returns the complement of the argument
+; if the difference is not defined it returns an error
 (defun -e (x &optional y)
   (if (null y)
       (sub-reciprocal x)
@@ -330,6 +443,10 @@
             (error "The difference of ~a and ~a is not defined" x y)
             result))))
 
+; executes the division of x and y if both are extended reals
+; otherwise it returns an error
+; if one argument is provided it returns the complement of the argument
+; if the division is not defined it returns an error
 (defun /e (x &optional y)
   (if (null y)
       (div-reciprocal x)
@@ -338,8 +455,16 @@
             (error "The division of ~a and ~a is not defined" x y)
             result))))
 
+; returns the empty interval
 (defun empty-interval () +empty-interval+)
 
+; creates an interval
+; if no value i provided it returns the empty interval
+; if a single value is provided is returns a singleton 
+; with that value
+; or if both values are provided it returns an interval
+; if h<l it returns the empty interval
+; both l and h must be extended reals
 (defun interval (&optional l h)
   (cond
    ((and (null l) (null h))
@@ -370,12 +495,18 @@
 ;  (error T "The provided values ~A 
 ;      and ~A must be extended reals" l h))))
 
+; returns the whole set of extended reals
+; so the interval from -infinity to +infinity
 (defun whole ()
   (interval +neg-infinity+ +pos-infinity+))
 
-; checks if i is an interval,
-; an interval is either be a cons cell with two extended reals
-; or a list of intervals
+; checks if i is an interval
+; it can be an empty interval
+; a singleton
+; a single interval
+; a disjoint interval
+; an interval with exclusion points
+; TODO: add more checks for the exclusion points
 (defun is-interval (i)
   (cond
    ((eq i +empty-interval+)
@@ -388,17 +519,26 @@
           (is-valid-exclusion-list
             (cdr i))))))
 
+; checks if i is a single interval
+; a single interval is not a disjoint interval
+; TODO: what should happen with exclusion points
 (defun is-single-interval (i)
   (and (is-interval i)
        (eq (length (get-interval-list i)) 1)
        (is-cons-interval
          (car (get-interval-list i)))))
 
+; checks if i is the empty interval
+; if the value i is not an interval it returns an error
 (defun is-empty (i)
   (if (is-interval i)
       (or (eq i +empty-interval+))
       (error "The provided value ~A is not an interval" i)))
 
+; checks if i is a singleton interval
+; a singleton interval is an interval with the same
+; lower and upper bound
+; if the value i is not an interval it returns an error
 (defun is-singleton (i)
   (cond
    ((not (is-interval i))
@@ -409,6 +549,9 @@
      (and (is-single-interval i)
           (extended-real-eq (inf i) (sup i))))))
 
+; returns the lower bound of an interval
+; the lower bound of the empty interval does not exists
+; if the value i is not an interval it returns an error
 (defun inf (i)
   (cond
    ((is-empty i)
@@ -418,6 +561,9 @@
    (T
      (caar (get-interval-list i)))))
 
+; returns the upper bound of an interval
+; the upper bound of the empty interval does not exists
+; if the value i is not an interval it returns an error
 (defun sup (i)
   (cond
    ((is-empty i)
@@ -435,6 +581,15 @@
 
 ; (defun overlap (i1 i2))
 
+; i+ returns the sum of the intervals x and y
+; if x or y are not intervals or extended reals it returns an error
+; if x or y are extended reals they will be considered as singletons
+; if no arguments are provided it will return the singelton 0
+; if only one argument is provided it will return the argument 
+; (or the equivalent singleton)
+; if the sum is not defined it returns an error
+; the definition of the following calculation
+; can be found in the documentation
 (defun i+ (&optional x y)
   (let ((xi (validate-parse-interval-operation-parameter x))
         (yi (validate-parse-interval-operation-parameter y)))
@@ -450,6 +605,14 @@
          (+e (inf xi) (inf yi))
          (+e (sup xi) (sup yi)))))))
 
+; i+ returns the difference of the intervals x and y
+; if x or y are not intervals or extended reals it returns an error
+; if x or y are extended reals they will be considered as singletons
+; if only one argument is provided it will return the complement 
+; of the argument (or of the equivalent singleton)
+; if the difference is not defined it returns an error
+; the definition of the following calculation
+; can be found in the documentation
 (defun i- (x &optional y)
   (let ((xi (validate-parse-interval-operation-parameter x))
         (yi (validate-parse-interval-operation-parameter y)))
@@ -463,6 +626,16 @@
          (-e (inf xi) (sup yi))
          (-e (sup xi) (inf yi)))))))
 
+
+; i+ returns the multiplication of the intervals x and y
+; if x or y are not intervals or extended reals it returns an error
+; if x or y are extended reals they will be considered as singletons
+; if no arguments are provided it will return the singelton 1
+; if only one argument is provided it will return the argument 
+; (or the equivalent singleton)
+; if the multiplication is not defined it returns an error
+; the definition of the following calculation
+; can be found in the documentation
 (defun i* (&optional x y)
   (let ((xi (validate-parse-interval-operation-parameter x))
         (yi (validate-parse-interval-operation-parameter y)))
@@ -486,6 +659,14 @@
            (*e (sup xi) (inf yi))
            (*e (sup xi) (sup yi))))))))
 
+; i/ returns the division of the intervals x and y
+; if x or y are not intervals or extended reals it returns an error
+; if x or y are extended reals they will be considered as singletons
+; if only one argument is provided it will return the reciprocal 
+; of the argument (or of the equivalent singleton)
+; if the division is not defined it returns an error
+; the definition of the following calculation
+; can be found in the documentation
 (defun i/ (x &optional y)
   (let* ((xi (validate-parse-interval-operation-parameter x))
          (yi (validate-parse-interval-operation-parameter y))
@@ -580,8 +761,17 @@
           (extended-interval '(0)
             (cons-interval (/e b c) (/e a d)))))))))
 
-
 ;!===== PRINT AND TO STRING FUNCTIONS =====!
+; the print functions are auxiliary functions
+; to have a pretty print of the intervals as their 
+; sexp can be hard to read
+
+; the extended-real-to-string function returns a string
+; representation of the extended real number
+; if a value that is not an extended real is provided
+; it will just return the provided value "as is"
+; the unicode parameter is used to specify if the returned value
+; must be in ascii code or can use unicode characters
 (defun extended-real-to-string (x &optional (unicode t))
   (cond
    ((is-extended-real x)
@@ -594,9 +784,14 @@
                  (format nil "+~a" #\INFINITY)
                  "+infinity")
              x)))
-   (T
-     x)))
+   (T x)))
 
+; returns a string representation of the exclusion points
+; if the list is empty it returns an empty string
+; otherwise it returns a string with the exclusion points
+; separated by a comma
+; the unicode parameter is used to specify if the returned value
+; must be in ascii code or can use unicode characters
 (defun exclusion-points-to-string (points &optional (unicode T))
   (if (null points)
       ""
@@ -607,6 +802,10 @@
                     (extended-real-to-string x unicode))
               points)))))
 
+; returns a string representation of a cons interval
+; if the provided value is not a cons interval it returns an error
+; the unicode parameter is used to specify if the returned value
+; must be in ascii code or can use unicode characters
 (defun cons-interval-to-string (i &optional (unicode T))
   (if (not (is-cons-interval i))
       (error "The provided value ~A is not a cons interval" i))
@@ -614,6 +813,11 @@
         (h (extended-real-to-string (cdr i) unicode)))
     (format nil "[~a, ~a]" l h)))
 
+; returns a string representation of an interval
+; this function handles the different types of intervals
+; if the provided value is not an interval it returns nil
+; the unicode parameter is used to specify if the returned value
+; must be in ascii code or can use unicode characters
 (defun interval-to-string (i &optional (unicode T))
   (cond
    ((not (is-interval i))
@@ -649,5 +853,9 @@
              intervals-to-string
              (exclusion-points-to-string (cdr i) unicode)))))))
 
+; the print-interval function is a wrapper for the interval-to-string
+; function that prints the interval to the stream
+; the unicode parameter is used to specify if the returned value
+; must be in ascii code or can use unicode characters
 (defun print-interval (i &optional (unicode t) (stream T))
   (format stream "~a" (interval-to-string i unicode)))
