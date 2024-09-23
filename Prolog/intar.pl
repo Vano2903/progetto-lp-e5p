@@ -593,12 +593,10 @@ iplus(X, R) :- % interval
     !,
     R = X.
 
-iplus(X, R) :-  % extended real       % warning iplus(2, R) -> R = [2, 2]
+iplus(X, R) :-  % extended real       
     extended_real(X),
-    is_singleton(R),
-    !,
-    iinf(R, L1),
-    X = L1.
+    interval(X, R),
+    !.
 
 /* 
 The predicate iplus/3 is true if X and Y are instantiated non empty 
@@ -744,10 +742,8 @@ itimes(X, R) :-
 
 itimes(X, R) :-
     extended_real(X),
-    is_singleton(R),
-    !,
-    iinf(R, L1),
-    X = L1.
+    interval(X, R),
+    !.
 
 /* The predicate itimes/3 is true if X and Y are instantiated non empty 
 intervals and R is the interval constructed according to the multiplication 
@@ -823,7 +819,16 @@ idiv(X, R) :- % extended real
     interval(X, SI),  
     idiv(SI, R).
 
-idiv([L1, H1], R) :- % intervalli finiti
+idiv([L1, H1], R) :- % intervalli finiti M
+    itimes([L1, H1]), 
+    icontains([L1, H1], 0),
+    !,
+    div_e(L1, L2),  
+    div_e(H1, H2),
+    R = [[neg_infinity, L2], [H2, pos_infinity]], 
+    iplus(R).
+
+idiv([L1, H1], R) :- % intervalli finiti P N
     itimes([L1, H1]), 
     !,
     div_e(L1, L2),  
@@ -831,7 +836,7 @@ idiv([L1, H1], R) :- % intervalli finiti
     R = [H2, L2], 
     iplus(R).
 
-%warning interalli negativi
+
 idiv(_, _):- 
     !, fail.
 

@@ -632,6 +632,12 @@ test('iplus/3_disjoint') :-
 % iminus/2
 test('iminus/2') :- 
     iminus([1, 2], [-2, -1]).
+test('iminus/2_fail', fail) :- % reciproco alla somma applicabile ai reali
+    iminus([pos_infinity, pos_infinity], [neg_infinity, neg_infinity]),
+    iminus([neg_infinity, neg_infinity], [pos_infinity, pos_infinity]).
+test('iminus/2_singleton') :-
+    iminus(2, [-2, -2]),
+    iminus(-2, [2, 2]).
 
 test('iminus/2_fail', fail) :- 
     iminus([], _).
@@ -664,6 +670,15 @@ test('iminus/3_finite_neg_infinity') :-
 % Test che fallisce quando l'intervallo risultante è errato
 test('iminus/3_fail', fail) :- 
     iminus([3, 5], [1, 2], [2, 4]).
+
+test('iminus/3_disjoint') :- % <a,b> - <c,d> = [<a,d>,<c,b>] 
+    iminus([[neg_infinity, -1], [1, pos_infinity]], 
+           [[neg_infinity, -1], [1, pos_infinity]], 
+           X),
+    X = [[neg_infinity, pos_infinity], [neg_infinity, pos_infinity]].
+test('iminus/3_disjoint') :- 
+    iminus([[-4, -1], [1, 4]], [1, 2], X),
+    X = [[-6, -2], [-1, 3]].
 
 % itimes/2  
 test('itimes/2') :- 
@@ -702,12 +717,20 @@ test('itimes/3_finite_neg_infinity') :-
 test('itimes/3_fail', fail) :- 
     itimes([2, 3], [4, 5], [9, 15]).
 
-
-
+test('itimes/3_disjoint') :- % <a,b> * <c,d> = [min(ac,ad,bc,bd), max(ac,ad,bc,bd)]
+    itimes([[neg_infinity, -1], [1, pos_infinity]], [[neg_infinity, -1], [1, pos_infinity]], X),
+    X = [[1, pos_infinity], [1, pos_infinity]].
 % idiv/2
 test('idiv/2') :- 
     idiv([4, 8], [0.125, 0.25]).
-
+test('idiv/2') :-
+    idiv([-5, 5], [[neg_infinity, -0.2], [0.2, pos_infinity]]).
+test('idiv/2') :-
+    idiv([-8, -4], [-0.25, -0.125]).
+test('idiv/2_fail', fail) :-
+    idiv([0, 5], fail).
+test('idiv/2_fail', fail) :-
+    idiv([-2, 0], fail).
 test('idiv/2_fail', fail) :- 
     idiv([], _).
 
@@ -1055,4 +1078,9 @@ test('idiv/3_case_n1_n', fail) :-
 test('idiv/3_case_n1_n', fail) :-
     idiv([neg_infinity, neg_infinity], [neg_infinity, neg_infinity], fail).
 
+test('idiv/3_disjoint') :-
+    idiv([[neg_infinity, -1], [1, pos_infinity]], 
+           [[neg_infinity, -1], [1, pos_infinity]], 
+           X),
+    X = [[0, pos_infinity], [0, pos_infinity]].
 :- end_tests(intar).
