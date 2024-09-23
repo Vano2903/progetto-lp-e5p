@@ -523,8 +523,16 @@ test('icontains/2_valid_disjoint', fail) :-
     icontains([[neg_infinity, -4], [4, pos_infinity]], [[neg_infinity, -5], [3, pos_infinity]]).
 test('icontains/2_valid_disjoint') :-
     icontains([[-1, -1], [0,1], [2,3]], [[2, 3], [0, 1]]).
+test('icontains/2_valid_disjoint') :-
+    icontains([[-1, -1], [0,1], [2,3]], [[0, 1], [2, 3]]).
 test('icontains/2_valid_disjoint', fail) :-
     icontains([[-1, -1], [0,1], [2,3]], [[2, 3], [0, 2]]).
+test('icontains/2_valid_disjoint') :-
+    icontains([[neg_infinity,-2], [4,10], [11, pos_infinity]], [[-10,-2], [5,10], [12, pos_infinity]]).     
+test('icontains/2_valid_disjoint') :-
+    icontains([[neg_infinity,-2], [4,10], [11, pos_infinity]], [[5,10], [12, pos_infinity], [-10,-2]]).       
+test('icontains/2_valid_disjoint') :-
+    icontains([[-10,-2], [4,10], [11, 30]], [[-10,-2], [5,10]]).                        
 test('icontains/2_invalid', fail) :- 
     icontains([5, 10], 11).
 test('icontains/2_invalid', fail) :- 
@@ -547,7 +555,10 @@ test(ioverlap_fail, fail) :-
     ioverlap([1, 5], [6, 10]).
 test(ioverlap_fail, fail) :- 
     ioverlap([], [3, 7]).
-
+test('ioverlap_valid_disjoint') :-
+    ioverlap([[neg_infinity,-2], [4,10], [20, pos_infinity]], [[-10,-1], [2,10], [15, pos_infinity]]). 
+test('ioverlap_valid_disjoint', fail) :-
+    ioverlap([[neg_infinity,-2], [4,10], [20, pos_infinity]], [[-10,-1], [1,3], [2,10], [15, pos_infinity]]).     
 %%% Interval Arithmetic Tests
 
 % iplus/2
@@ -559,6 +570,8 @@ test('iplus/2_singleton') :-
     iplus(2, [2, 2]),
     iplus(pos_infinity, [pos_infinity, pos_infinity]),
     iplus(neg_infinity, [neg_infinity, neg_infinity]).
+test('iplus/2_disjoint') :-
+    iplus([[neg_infinity, -2], [-1,1], [3, pos_infinity]], [[neg_infinity, -2], [-1,1], [3, pos_infinity]]).
 test('iplus/2_fail', fail) :- 
     iplus([1, 2],  [-2, -1]).
 test('iplus/2_fail', fail) :- 
@@ -594,13 +607,23 @@ test('iplus/3_fail3', fail) :-
 test('iplus/3_fail3', fail) :- 
     iplus([neg_infinity, neg_infinity], [pos_infinity, pos_infinity], _).
 
-% Test somma intervalli disgiunti
-/*test('iplus/3_disjoint') :- 
-    iplus([[neg_infinity, -0.5], [0.5, pos_infinity]], 
-            [[neg_infinity, -0.5], [0.5, pos_infinity]], 
-                R),
-    R = [[neg_infinity, -1], [neg_infinity, pos_infinity], [neg_infinity, pos_infinity], [1, pos_infinity]].
-*/
+% Test somma intervalli disgiunti stessa lunghezza
+test('iplus/3_disjoint') :- 
+    iplus([[neg_infinity, -1], [1, pos_infinity]], 
+          [[neg_infinity, -1], [1, pos_infinity]], 
+          [[neg_infinity, -2] , [2, pos_infinity]]).
+          %R = [[neg_infinity, -2], [neg_infinity, pos_infinity], [neg_infinity, pos_infinity], [2, pos_infinity]]. ???
+          
+% test somma intervalli disgiunti lunghezza diversa
+test('iplus/3_disjoint') :-
+    iplus([[neg_infinity,-1], [1, pos_infinity]], [1,2], [[neg_infinity, 1], [2, pos_infinity]]).
+test('iplus/3_disjoint') :-
+    iplus([[-10,-1], [1, 10]], [1,2], [[-9, 1], [2, 12]]).
+test('iplus/3_disjoint') :-
+    iplus([1,2], [[neg_infinity,-1], [1, pos_infinity]], [[neg_infinity, 1], [2, pos_infinity]]).
+test('iplus/3_disjoint') :-
+    iplus([1,2], [[-10,-1], [1, 10]], [[-9, 1], [2, 12]]).
+
 % iminus/2
 test('iminus/2') :- 
     iminus([1, 2], [-2, -1]).

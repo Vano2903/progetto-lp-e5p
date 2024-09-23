@@ -511,8 +511,8 @@ is_interval([_, neg_infinity]) :-
 is_interval([]) :- !.
 
 is_interval([L, H]) :- 
-    extended_real(L),
-    extended_real(H),
+%    extended_real(L),
+%    extended_real(H),
     er_min(L, H, L),
     !.
 
@@ -575,12 +575,25 @@ icontains(_, X) :-
 
 % gestione intervalli disgiunti.
 icontains([I | _], X):- 
-    is_interval(I),
+%    is_interval(I),
     icontains(I, X),
     !.
 icontains([I | Is], X) :- 
     is_interval(I),
     icontains(Is, X),
+    !.
+
+icontains(I1, [I2]) :- 
+%    is_interval(I1),
+%    is_interval(I2),
+    icontains(I1, I2),
+    !.
+
+icontains(I1, [I2 | I2s]) :- 
+    is_interval(I1),
+    is_interval(I2),
+    icontains(I1, I2),
+    icontains(I1, I2s),
     !.
 
 % reale esteso
@@ -590,17 +603,6 @@ icontains([L, H], X) :-
     !,
     er_min(L, X, L),
     er_max(H, X, H).
-icontains([L, H], [I]) :- 
-    is_interval([L, H]),
-    is_interval(I),
-    icontains([L, H], I),
-    !.
-icontains([L, H], [I | Is]) :- 
-    is_interval([L, H]),
-    is_interval(I),
-    icontains([L, H], I),
-    icontains([L, H], Is),
-    !.
 
 % intervallo
 icontains([L1, H1], [L2, H2]) :- 
@@ -613,17 +615,26 @@ icontains([L1, H1], [L2, H2]) :-
 if either I1 or I2 is not an interval.
 */
 % gestione intervalli disgiunti. 
-ioverlap([I1, I2], X) :- 
-    is_interval([I1, I2]),
-    ioverlap(I1, X),
-    !.
-                                % manca da gestire il caso in cui entrambi gli int sono disgiunti.
-                                % ?- ioverlap([[-1,0], [1,5]], [[neg_infinity,2], [2,4]]). 
-                                % false. invece di true.
-ioverlap([I1, I2], X) :-
-    is_interval([I1, I2]),
-    ioverlap(I2, X),
-    !.
+ioverlap(I1, I2) :-
+    icontains(I1, I2), !.
+
+ioverlap([I | _], X) :-
+    ioverlap(I, X), !.
+
+ioverlap([I | Is], X) :- 
+    is_interval(I),
+    ioverlap(Is, X), !.
+
+ioverlap(I1, [I2]) :- 
+%    is_interval(I1),
+%    is_interval(I2),
+    ioverlap(I1, I2), !.
+
+ioverlap(I1, [I2 | I2s]) :- 
+    is_interval(I1),
+    is_interval(I2),
+    ioverlap(I1, I2),
+    ioverlap(I1, I2s), !.
 
 ioverlap([L1, H1], [L2, H2]) :- 
     is_interval([L1, H1]),
@@ -671,6 +682,8 @@ In all other cases the predicates fail.
 
 % somma intervalli
 iplus([L1, H1], [L2, H2], [Result1, Result2]) :- 
+    extended_real(L1),
+    extended_real(L2),
     iplus([L1, H1]), 
     iplus([L2, H2]),
     !,
@@ -691,6 +704,26 @@ iplus(X, Y, Result) :-
     interval(Y, SI2),
     iplus(SI1, SI2, Result).
 
+% iplus disgiunto e intervallo
+% caso base
+iplus([], _, []):- !.
+iplus(_, [], []):- !.
+
+% caso ricorsivo
+iplus([L, H], [I2 | I2s], [Result | Results]) :-
+    extended_real(L),
+    iplus([L, H], I2, Result),
+    iplus([L, H], I2s, Results), !.
+
+iplus([I1 | I1s], [L, H], [Result | Results]) :-
+    extended_real(L),
+    iplus(I1, [L, H], Result),
+    iplus(I1s, [L, H], Results), !.
+
+% iplus disgiunti stessa lunghezza
+iplus([I1 | I1s], [I2 | I2s], [Result | Results]) :-
+    iplus(I1, I2, Result),
+    iplus(I1s, I2s, Results), !.
 
 /* The predicate iminus/2 is true if X is an instantiated non empty interval and R unifies with
 its reciprocal with respect to the summation operation. If X is an extended real then it is first
@@ -725,6 +758,8 @@ In all other cases the predicates fail.
 
 % differenza intervalli finiti
 iminus([L1, H1], [L2, H2], [Result1, Result2]) :- 
+    extended_real(L1),
+    extended_real(L2),
     iplus([L1, H1]), 
     iplus([L2, H2]),
     !,
@@ -745,6 +780,28 @@ iminus(X, Y, Result) :-
     interval(X, SI1),
     interval(Y, SI2),
     iminus(SI1, SI2, Result).
+
+% iminus disgiunto e intervallo
+% caso base
+iminus([], _, []):- !.
+iminus(_, [], []):- !.
+
+% caso ricorsivo
+iminus([L, H], [I2 | I2s], [Result | Results]) :-
+    extended_real(L),
+    iminus([L, H], I2, Result),
+    iminus([L, H], I2s, Results), !.
+
+iminus([I1 | I1s], [L, H], [Result | Results]) :-
+    extended_real(L),
+    iminus(I1, [L, H], Result),
+    iminus(I1s, [L, H], Results), !.
+
+% iminus disgiunti stessa lunghezza
+iminus([I1 | I1s], [I2 | I2s], [Result | Results]) :-
+    iminus(I1, I2, Result),
+    iminus(I1s, I2s, Results), !.
+
 
 % The predicate itimes/1 is true if ZI is a non empty interval.
 itimes([]):- !, fail.
@@ -774,6 +831,8 @@ X or Y are instantiated extended reals, they are first transformed into singleto
 In all other cases the predicates fail.
 */
 itimes([L1, H1], [L2, H2], [Result1, Result2]) :- 
+    extended_real(L1),
+    extended_real(L2),
     itimes([L1, H1]), 
     itimes([L2, H2]),
     !,
@@ -801,6 +860,28 @@ itimes(X, Y, Result) :-
     interval(X, SI1),
     interval(Y, SI2),
     itimes(SI1, SI2, Result).
+
+% itimes disgiunto e intervallo
+% caso base
+itimes([], _, []):- !.
+itimes(_, [], []):- !.
+
+% caso ricorsivo
+itimes([L, H], [I2 | I2s], [Result | Results]) :-
+    extended_real(L),
+    itimes([L, H], I2, Result),
+    itimes([L, H], I2s, Results), !.
+
+itimes([I1 | I1s], [L, H], [Result | Results]) :-
+    extended_real(L),
+    itimes(I1, [L, H], Result),
+    itimes(I1s, [L, H], Results), !.
+
+% itimes disgiunti stessa lunghezza
+itimes([I1 | I1s], [I2 | I2s], [Result | Results]) :-
+    itimes(I1, I2, Result),
+    itimes(I1s, I2s, Results), !.
+
 
 /* The predicate idiv/2 is true if X is an instantiated non empty interval and R unifies with its
 reciprocal with respect to the division operation. If X is an extended real then it is first
@@ -1089,6 +1170,28 @@ idiv(X, Y, Result) :-
     interval(Y, SI2),
     !,
     idiv(SI1, SI2, Result).
+
+% idiv disgiunto e intervallo
+% caso base
+idiv([], _, []):- !.
+idiv(_, [], []):- !.
+
+% caso ricorsivo
+idiv([L, H], [I2 | I2s], [Result | Results]) :-
+    extended_real(L),
+    idiv([L, H], I2, Result),
+    idiv([L, H], I2s, Results), !.
+
+idiv([I1 | I1s], [L, H], [Result | Results]) :-
+    extended_real(L),
+    idiv(I1, [L, H], Result),
+    idiv(I1s, [L, H], Results), !.
+
+% idiv disgiunti stessa lunghezza
+idiv([I1 | I1s], [I2 | I2s], [Result | Results]) :-
+    idiv(I1, I2, Result),
+    idiv(I1s, I2s, Results), !.
+
 
 % idiv(_, _ , _) :- !, fail.
 %%%% end of file -- intar.pl --
