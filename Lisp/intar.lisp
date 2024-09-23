@@ -90,7 +90,6 @@
      (not (eq y +pos-infinity+)))
    (T (> x y))))
 
-; x == y
 ; checks if x is equal to y
 ; if x or y are not extended reals returns nil
 (defun extended-real-eq (x y)
@@ -113,7 +112,6 @@
             (if (extended-real-gt x rest-min-max)
                 rest-min-max
                 x)))))
-
 
 ; the function filters any non extended-real value
 ; and returns the lowest value if find-min is T
@@ -295,7 +293,6 @@
      interval)
    (T
      (let ((intervals (get-interval-list interval)))
-       (format t "intervals: ~a~%" intervals)
        (apply #'extended-interval
            (get-exclusion-list interval)
          (sort-cons-intervals intervals))))))
@@ -399,27 +396,32 @@
                  (extended-real-eq l h))))))
 
 ; the function returns nil if the interval provided
-; is not a single (valid) interval or if it's the empty interval
+; is not a cons-interval
 ; the classification is based on the following table
 ; p0 = a,b | 0 <= a <= b V b != 0
 ; p1 = a,b | 0 < a <= b
 ; z = 0,0
 ; n0 = a,b | a <= b <= 0 V a != 0
 ; n1 = a,b | a <= b < 0
-; M = a,b | a < 0 < b       
-(defun classify-interval (i)
-  (if (is-single-interval i)
-      (let ((l (inf i))
-            (h (sup i)))
+; M = a,b | a < 0 < b
+(defun classify-cons-interval (i exclusion-points)
+  (if (is-cons-interval i)
+      (let ((l (car i))
+            (h (cdr i)))
         (cond
-         ((is-singleton i)
+         ((extended-real-eq l h)
+           ;  todo: add exclusion points check
+           ;  if there is an exclusion point on 0
            (cond ((extended-real-eq l 0) 'z)
                  ((extended-real-gt l 0) 'p1)
                  ((extended-real-gt 0 l) 'n1)))
          ;  l == 0 and h > 0 -> p0
          ;  if h == 0 is a singleton or
          ;  if h < 0 is an invalid interval
-         ((extended-real-eq l 0) 'p0)
+         ((extended-real-eq l 0)
+           (if (member 0 exclusion-points)
+               'p1
+               'p0))
          ;  l>0 and h > l -> p0
          ((extended-real-gt l 0) 'p1)
          ;  l<0 and h == 0 -> n0
@@ -427,10 +429,22 @@
          ;  l<0 and h < 0 -> n1
          ((extended-real-gt 0 l)
            (cond
-            ((extended-real-eq h 0) 'n0)
+            ((extended-real-eq h 0)
+              (if (member 0 exclusion-points)
+                  'n1
+                  'n0))
             ((extended-real-gt h 0) 'm)
             ((extended-real-gt 0 h) 'n1)))))))
 
+; the function classifies an interval
+; based on the classification of the cons intervals
+; the function returns nil if the interval is not
+; a single interval
+(defun classify-interval (i)
+  (if (is-single-interval i)
+      (classify-cons-interval
+        (caar i)
+        (get-exclusion-list i))))
 
 ; this function creates a cons interval
 ; if h is not provided it returns a singleton interval
@@ -491,9 +505,6 @@
       (cdr i)
       (error "The provided value ~A is not an interval" i)))
 ;!===== API FUNCTIONS =====!
-
-; if 0 args return 0
-; if 2 args return the sum of the args
 
 ; executes the sum of x and y if both are extended reals
 ; otherwise it returns an error
@@ -651,6 +662,52 @@
 
 ; (defun overlap (i1 i2))
 
+(defun concat-lists (l1 l2)
+  (if (null l1)
+      l2
+      (cons
+        (car l1)
+        (concat-lists (cdr l1) l2))))
+
+(defun merge-and-sort-exclusion-lists (l1 l2)
+  (remove-duplicates
+      (sort (concat-lists l1 l2)
+          (lambda (x y)
+            (not (extended-real-gt x y))))))
+
+(defun combine-cons-intervals-with-operation (x y operation)
+  (let ((combined-intervals
+         (mapcar (lambda (xi)
+                   (mapcar (lambda (yi)
+                             ; (format t "xi: ~a yi: ~a~%" xi yi)
+                             (funcall operation xi yi))
+                       y))
+             x)))
+    (concat-lists (car combined-intervals) (cadr combined-intervals))))
+
+(defun sum-cons-intervals (c1 c2)
+  (cons-interval
+    (+e (car c1) (car c2))
+    (+e (cdr c1) (cdr c2))))
+
+(defun sub-cons-intervals (c1 c2)
+  (cons-interval
+    (-e (car c1) (cdr c2))
+    (-e (cdr c1) (car c2))))
+
+(defun mul-cons-intervals (c1 c2)
+  (cons-interval
+    (extended-real-min
+        (*e (car c1) (car c2))
+      (*e (car c1) (cdr c2))
+      (*e (cdr c1) (car c2))
+      (*e (cdr c1) (cdr c2)))
+    (extended-real-max
+        (*e (car c1) (car c2))
+      (*e (car c1) (cdr c2))
+      (*e (cdr c1) (car c2))
+      (*e (cdr c1) (cdr c2)))))
+
 ; i+ returns the sum of the intervals x and y
 ; if x or y are not intervals or extended reals it returns an error
 ; if x or y are extended reals they will be considered as singletons
@@ -670,10 +727,16 @@
        (if (null xi)
            yi
            xi))
-     (T
-       (interval
-         (+e (inf xi) (inf yi))
-         (+e (sup xi) (sup yi)))))))
+     (t
+       (sort-interval
+         (apply #'extended-interval
+             (merge-and-sort-exclusion-lists
+               (get-exclusion-list xi)
+               (get-exclusion-list yi))
+           (combine-cons-intervals-with-operation
+             (get-interval-list xi)
+             (get-interval-list yi)
+             #'sum-cons-intervals)))))))
 
 ; i+ returns the difference of the intervals x and y
 ; if x or y are not intervals or extended reals it returns an error
@@ -692,9 +755,15 @@
          (sub-reciprocal (sup xi))
          (sub-reciprocal (inf xi))))
      (T
-       (interval
-         (-e (inf xi) (sup yi))
-         (-e (sup xi) (inf yi)))))))
+       (sort-interval
+         (apply #'extended-interval
+             (merge-and-sort-exclusion-lists
+               (get-exclusion-list xi)
+               (get-exclusion-list yi))
+           (combine-cons-intervals-with-operation
+             (get-interval-list xi)
+             (get-interval-list yi)
+             #'sub-cons-intervals)))))))
 
 ; i+ returns the multiplication of the intervals x and y
 ; if x or y are not intervals or extended reals it returns an error
@@ -715,18 +784,108 @@
        (if (null xi)
            yi
            xi))
-     (T
-       (interval
-         (extended-real-min
-             (*e (inf xi) (inf yi))
-           (*e (inf xi) (sup yi))
-           (*e (sup xi) (inf yi))
-           (*e (sup xi) (sup yi)))
-         (extended-real-max
-             (*e (inf xi) (inf yi))
-           (*e (inf xi) (sup yi))
-           (*e (sup xi) (inf yi))
-           (*e (sup xi) (sup yi))))))))
+     (t
+       (sort-interval
+         (apply #'extended-interval
+             (merge-and-sort-exclusion-lists
+               (get-exclusion-list xi)
+               (get-exclusion-list yi))
+           (combine-cons-intervals-with-operation
+             (get-interval-list xi)
+             (get-interval-list yi)
+             #'mul-cons-intervals)))))))
+
+(defun div-cons-intervals (c1 c1-class c2 c2-class)
+  (let ((a (car c1))
+        (b (cdr c1))
+        (c (car c2))
+        (d (cdr c2)))
+    (cond
+     ((eq c2-class 'z)
+       (error "division by zero"))
+     ((eq c1-class 'z)
+       (interval 0))
+     ((eq c2 +empty-interval+)
+       (error "Division by empty interval"))
+     ((eq c1-class 'p0)
+       (cond
+        ((eq c2-class 'p0)
+          (interval 0 +pos-infinity+))
+        ((eq c2-class 'p1)
+          (interval 0 (/e b c)))
+        ((eq c2-class 'm)
+          (whole))
+        ((eq c2-class 'n0)
+          (interval +neg-infinity+ 0))
+        ((eq c2-class 'n1)
+          (interval (/e b d) 0))))
+     ((eq c1-class 'p1)
+       (cond
+        ((eq c2-class 'p0)
+          (extended-interval '(0)
+            (cons-interval (/e a d) +pos-infinity+)))
+        ((eq c2-class 'p1)
+          (extended-interval '(0)
+            (cons-interval (/e a d) (/e b c))))
+        ((eq c2-class 'm)
+          (extended-interval '(0)
+            (cons-interval +neg-infinity+ (/e a c))
+            (cons-interval (/e a d) +pos-infinity+)))
+        ((eq c2-class 'n0)
+          (extended-interval '(0)
+            (cons-interval +neg-infinity+ (/e a c))))
+        ((eq c2-class 'n1)
+          (extended-interval '(0)
+            (cons-interval (/e b d) (/e a c))))))
+     ((eq c1-class 'm)
+       (cond
+        ((eq c2-class 'p0)
+          (whole))
+        ((eq c2-class 'p1)
+          (interval (/e a c) (/e b c)))
+        ((eq c2-class 'm)
+          (whole))
+        ((eq c2-class 'n0)
+          (whole))
+        ((eq c2-class 'n1)
+          (interval (/e b c) (/e a d)))))
+     ((eq c1-class 'n0)
+       (cond
+        ((eq c2-class 'p0)
+          (interval +neg-infinity+ 0))
+        ((eq c2-class 'p1)
+          (interval (/e a c) 0))
+        ((eq c2-class 'm)
+          (whole))
+        ((eq c2-class 'n0)
+          (interval 0 +pos-infinity+))
+        ((eq c2-class 'n1)
+          (interval 0 (/e a d)))))
+
+     ((eq c1-class 'n1)
+       (cond
+        ((eq c2-class 'p0)
+          (extended-interval '(0)
+            (cons-interval +neg-infinity+ (/e b d))))
+        ((eq c2-class 'p1)
+          (extended-interval '(0)
+            (cons-interval (/e a c) (/e b d))))
+        ((eq c2-class 'm)
+          (extended-interval '(0)
+            (cons-interval +neg-infinity+ (/e b d))
+            (cons-interval (/e b c) +pos-infinity+)))
+        ((eq c2-class 'n0)
+          (extended-interval '(0)
+            (cons-interval (/e c c) +neg-infinity+)))
+        ((eq c2-class 'n1)
+          (extended-interval '(0)
+            (cons-interval (/e b c) (/e a d)))))))))
+
+
+(defun merge-division-intervals-into-interval (lst)
+  (cons
+    (mapcar #'caar lst)
+    (remove-duplicates (mapcar #'cadr lst))))
 
 ; i/ returns the division of the intervals x and y
 ; if x or y are not intervals or extended reals it returns an error
@@ -738,105 +897,38 @@
 ; can be found in the documentation
 (defun i/ (x &optional y)
   (let* ((xi (validate-parse-interval-operation-parameter x))
-         (yi (validate-parse-interval-operation-parameter y))
-         (xi-class (classify-interval xi))
-         (yi-class (classify-interval yi))
-         (a (inf xi))
-         (b (sup xi))
-         (c (if (not (null yi))
-                (inf yi)
-                nil))
-         (d (if (not (null yi))
-                (sup yi)
-                nil)))
+         (yi (validate-parse-interval-operation-parameter y)))
     (cond
      ((null y)
-       (if (eq xi-class 'm)
+       (if (eq (classify-interval xi) 'm)
            (extended-interval '()
-             (cons-interval +neg-infinity+ (div-reciprocal a))
-             (cons-interval (div-reciprocal b) +pos-infinity+))
+             (cons-interval +neg-infinity+ (div-reciprocal (inf xi)))
+             (cons-interval (div-reciprocal (sup xi)) +pos-infinity+))
            (interval
-             (div-reciprocal a)
-             (div-reciprocal b))))
-     ((eq yi-class 'z)
-       (error "division by zero"))
-     ((eq xi-class 'z)
-       (interval 0))
-     ((eq yi +empty-interval+)
-       (error "Division by empty interval"))
-     ((eq xi-class 'p0)
-       (cond
-        ((eq yi-class 'p0)
-          (interval 0 +pos-infinity+))
-        ((eq yi-class 'p1)
-          (interval 0 (/e b c)))
-        ((eq yi-class 'm)
-          (whole))
-        ((eq yi-class 'n0)
-          (interval +neg-infinity+ 0))
-        ((eq yi-class 'n1)
-          (interval (/e b d) 0))))
-     ((eq xi-class 'p1)
-       (cond
-        ((eq yi-class 'p0)
-          (extended-interval '(0)
-            (cons-interval (/e a d) +pos-infinity+)))
-        ((eq yi-class 'p1)
-          (extended-interval '(0)
-            (cons-interval (/e a d) (/e b c))))
-        ((eq yi-class 'm)
-          (extended-interval '(0)
-            (cons-interval +neg-infinity+ (/e a c))
-            (cons-interval (/e a d) +pos-infinity+)))
-        ((eq yi-class 'n0)
-          (extended-interval '(0)
-            (cons-interval +neg-infinity+ (/e a c))))
-        ((eq yi-class 'n1)
-          (extended-interval '(0)
-            (cons-interval (/e b d) (/e a c))))))
-     ((eq xi-class 'm)
-       (cond
-        ((eq yi-class 'p0)
-          (whole))
-        ((eq yi-class 'p1)
-          (interval (/e a c) (/e b c)))
-        ((eq yi-class 'm)
-          (whole))
-        ((eq yi-class 'n0)
-          (whole))
-        ((eq yi-class 'n1)
-          (interval (/e b c) (/e a d)))))
-     ((eq xi-class 'n0)
-       (cond
-        ((eq yi-class 'p0)
-          (interval +neg-infinity+ 0))
-        ((eq yi-class 'p1)
-          (interval (/e a c) 0))
-        ((eq yi-class 'm)
-          (whole))
-        ((eq yi-class 'n0)
-          (interval 0 +pos-infinity+))
-        ((eq yi-class 'n1)
-          (interval 0 (/e a d)))))
-
-     ((eq xi-class 'n1)
-       (cond
-        ((eq yi-class 'p0)
-          (extended-interval '(0)
-            (cons-interval +neg-infinity+ (/e b d))))
-        ((eq yi-class 'p1)
-          (extended-interval '(0)
-            (cons-interval (/e a c) (/e b d))))
-        ((eq yi-class 'm)
-          (extended-interval '(0)
-            (cons-interval +neg-infinity+ (/e b d))
-            (cons-interval (/e b c) +pos-infinity+)))
-        ((eq yi-class 'n0)
-          (extended-interval '(0)
-            (cons-interval (/e c c) +neg-infinity+)))
-        ((eq yi-class 'n1)
-          (extended-interval '(0)
-            (cons-interval (/e b c) (/e a d)))))))))
+             (div-reciprocal (inf xi))
+             (div-reciprocal (sup xi)))))
+     (t
+       (let ((division-interval
+              (merge-division-intervals-into-interval
+               (combine-cons-intervals-with-operation
+                 (get-interval-list xi)
+                 (get-interval-list yi)
+                 (lambda (c1 c2)
+                   (let ((c1-class (classify-cons-interval
+                                     c1
+                                     (get-exclusion-list xi)))
+                         (c2-class (classify-cons-interval
+                                     c2
+                                     (get-exclusion-list yi))))
+                     (div-cons-intervals c1 c1-class c2 c2-class)))))))
+         (sort-interval
+           (apply #'extended-interval
+               (merge-and-sort-exclusion-lists
+                 (merge-and-sort-exclusion-lists
+                   (get-exclusion-list xi)
+                   (get-exclusion-list yi))
+                 (cdr division-interval))
+             (car division-interval))))))))
 
 ;!===== PRINT AND TO STRING FUNCTIONS =====!
 ; the print functions are auxiliary functions
