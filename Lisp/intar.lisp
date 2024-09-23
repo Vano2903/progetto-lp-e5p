@@ -274,6 +274,115 @@
         result)))
 
 ;!===== interval functions =====!
+
+(defun sort-cons-intervals (intervals)
+  (sort intervals
+      (lambda (x y)
+        (extended-real-gt (car y) (car x)))))
+
+; sort interval it sorts the interval
+; if the interval is not a disjoint interval it returns it "as is"
+; if the interval is a disjoint interval it returns the sorted interval
+; by the lower bound
+; if the interval is not an interval it returns nil
+(defun sort-interval (interval)
+  (cond
+   ((or (null interval)
+        (not (is-interval interval)))
+     nil)
+   ((or (is-empty interval)
+        (is-single-interval interval))
+     interval)
+   (T
+     (let ((intervals (get-interval-list interval)))
+       (format t "intervals: ~a~%" intervals)
+       (apply #'extended-interval
+           (get-exclusion-list interval)
+         (sort-cons-intervals intervals))))))
+
+; the function merges two cons intervals
+; if there is an overlap it returns the merged interval
+; otherwise it returns nil
+(defun merge-cons-intervals (c1 c2)
+  (let* ((a (car c1))
+         (b (cdr c1))
+         (c (car c2))
+         (d (cdr c2)))
+
+    ; check that (a <= b and c <= d)
+    ; Swap if a > b
+    (let ((a (if (extended-real-gt a b) b a))
+          (b (if (extended-real-gt a b) a b))
+          ; Swap if c > d
+          (c (if (extended-real-gt c d) d c))
+          (d (if (extended-real-gt c d) c d)))
+
+      (if (and (not (extended-real-gt a d)) ; a <= d
+               (not (extended-real-gt c b))) ; c <= b
+          (cons (extended-real-min a c)
+                (extended-real-max b d))
+          ;no overlap
+          nil))))
+
+; ! this function might not be needed
+; an implementation of reverse just because im not sure
+; if i can use reverse or not
+(defun rev (l)
+  (cond
+   ((null l)
+     '())
+   (T
+     (append (rev (cdr l)) (list (car l))))))
+
+; merges a list of cons intervals
+; the output might not be in order
+(defun merge-list-cons-intervals
+    (intervals &optional (merged-intervals '()))
+
+  (cond
+   ((null intervals)
+     (reverse merged-intervals))
+   ((null (cdr intervals))
+     ;  append on the left
+     (reverse (cons (car intervals) merged-intervals)))
+   (t
+     (let* ((merged (merge-cons-intervals
+                      (car intervals)
+                      (cadr intervals))))
+       (if (not merged)
+           (merge-list-cons-intervals
+             (cdr intervals)
+             (cons (car intervals) merged-intervals))
+           (merge-list-cons-intervals
+             (cons merged (cddr intervals))
+             merged-intervals))))))
+
+; this function handles the merging operation
+; of an interval
+; if the interval is nil or not an interval it returns nil
+; if the interval is the empty interval or a single interval it returns
+; the interval itself as it's already "merged"
+; if the interval is a disjoint interval 
+; it returns the merged and sorted interval
+(defun sort-and-merge-interval (interval)
+  (cond
+   ((or (null interval)
+        (not (is-interval interval)))
+     nil)
+   ((or (is-empty interval)
+        (is-single-interval interval))
+     interval)
+   (t
+     (let ((intervals (sort-cons-intervals (get-interval-list interval))))
+       (apply #'extended-interval
+           (get-exclusion-list interval)
+         (sort-cons-intervals (merge-list-cons-intervals intervals)))))))
+
+; the function can handle a list of intervals
+; or a single interval (must be passed as a list anyway)
+; (defun sort-and-merge-intervals (intervals)
+;   ())
+
 ; checks if an interval is a well defined 
 ; cons interval
 ; a cons interval is defined in the documentation
@@ -307,7 +416,6 @@
            (cond ((extended-real-eq l 0) 'z)
                  ((extended-real-gt l 0) 'p1)
                  ((extended-real-gt 0 l) 'n1)))
-
          ;  l == 0 and h > 0 -> p0
          ;  if h == 0 is a singleton or
          ;  if h < 0 is an invalid interval
@@ -323,16 +431,6 @@
             ((extended-real-gt h 0) 'm)
             ((extended-real-gt 0 h) 'n1)))))))
 
-; given a list of intervals
-; return the cdr of the last interval
-(defun sup-list (i)
-  (cond
-   ((null i)
-     nil)
-   ((null (cdr i))
-     (cdr (car i)))
-   (T
-     (sup-list (cdr i)))))
 
 ; this function creates a cons interval
 ; if h is not provided it returns a singleton interval
@@ -470,30 +568,6 @@
    ((and (null l) (null h))
      (empty-interval))
    (T (extended-interval nil (cons-interval l h)))))
-; ((null h)
-;  (extended-interval nil (cons-interval l)))
-; ;  (cond
-; ; ((is-infinity l)
-; ;   (error "Cannot create a singleton interval with infinity"))
-; ;  (if (is-extended-real l)
-; ;  (cons (list (cons l l)) (list))
-; ;  (extended-interval nil (cons l l))
-; ;  (error "The provided value ~A must be an extended real" l)))
-; ;  ((and (is-infinity l)
-; ;        (is-infinity h)
-; ;        (extended-real-eq l h))
-; ;    (error "Cannot create an interval with both infinities"))
-; ((and (is-extended-real l)
-;       (is-extended-real h))
-;  (if (or (extended-real-gt h l)
-;          (extended-real-eq l h))
-;      ;  (cons l h)
-;      ;  (cons (list (cons l h)) (list))
-;      (extended-interval nil (cons l h))
-;      (empty-interval)))
-; (T
-;  (error T "The provided values ~A 
-;      and ~A must be extended reals" l h))))
 
 ; returns the whole set of extended reals
 ; so the interval from -infinity to +infinity
@@ -559,7 +633,7 @@
    ((not (is-interval i))
      (error "The provided value ~A is not an interval" i))
    (T
-     (caar (get-interval-list i)))))
+     (caar (get-interval-list (sort-and-merge-interval i))))))
 
 ; returns the upper bound of an interval
 ; the upper bound of the empty interval does not exists
@@ -571,11 +645,7 @@
    ((not (is-interval i))
      (error "The provided value ~A is not an interval" i))
    (T
-     (cdar (last (car i))))))
-;  ((is-single-interval i)
-;    (cdaar i))
-;  (T
-;    (sup-list (car i)))))
+     (cdar (last (car (sort-and-merge-interval i)))))))
 
 ; (defun contains (i x))
 
@@ -625,7 +695,6 @@
        (interval
          (-e (inf xi) (sup yi))
          (-e (sup xi) (inf yi)))))))
-
 
 ; i+ returns the multiplication of the intervals x and y
 ; if x or y are not intervals or extended reals it returns an error
