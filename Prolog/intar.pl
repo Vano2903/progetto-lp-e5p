@@ -628,26 +628,15 @@ iplus(X, Y, Result) :-  % somma reale reale
     interval(Y, SI2),
     iplus(SI1, SI2, Result).
 
-% iplus disgiunto e intervallo
 % caso base
 iplus([], _, []):- !.
 iplus(_, [], []):- !.
 
-% caso ricorsivo
-iplus([L, H], [I2 | I2s], [Result | Results]) :-
-    extended_real(L),
-    iplus([L, H], I2, Result),
-    iplus([L, H], I2s, Results), !.
-
-iplus([I1 | I1s], [L, H], [Result | Results]) :-
-    extended_real(L),
-    iplus(I1, [L, H], Result),
-    iplus(I1s, [L, H], Results), !.
-
-% iplus disgiunti stessa lunghezza
-iplus([I1 | I1s], [I2 | I2s], [Result | Results]) :-
-    iplus(I1, I2, Result),
-    iplus(I1s, I2s, Results), !.
+% iplus disgiunti 
+iplus(I1s, I2s, Results) :-
+    findall(R, 
+        (member(I1, I1s), member(I2, I2s), iplus(I1, I2, R)), Results).
+    
 
 /* The predicate iminus/2 is true if X is an instantiated non empty 
 interval and R unifies with its reciprocal with respect to the summation
@@ -708,20 +697,9 @@ iminus([], _, []):- !.
 iminus(_, [], []):- !.
 
 % caso ricorsivo
-iminus([L, H], [I2 | I2s], [Result | Results]) :-
-    extended_real(L),
-    iminus([L, H], I2, Result),
-    iminus([L, H], I2s, Results), !.
-
-iminus([I1 | I1s], [L, H], [Result | Results]) :-
-    extended_real(L),
-    iminus(I1, [L, H], Result),
-    iminus(I1s, [L, H], Results), !.
-
-% iminus disgiunti stessa lunghezza
-iminus([I1 | I1s], [I2 | I2s], [Result | Results]) :-
-    iminus(I1, I2, Result),
-    iminus(I1s, I2s, Results), !.
+iminus(I1s, I2s, Results) :-
+    findall(R, 
+        (member(I1, I1s), member(I2, I2s), iminus(I1, I2, R)), Results).
 
 
 % The predicate itimes/1 is true if ZI is a non empty interval.
@@ -787,21 +765,9 @@ itimes(X, Y, Result) :-
 itimes([], _, []):- !.
 itimes(_, [], []):- !.
 
-% caso ricorsivo
-itimes([L, H], [I2 | I2s], [Result | Results]) :-
-    extended_real(L),
-    itimes([L, H], I2, Result),
-    itimes([L, H], I2s, Results), !.
-
-itimes([I1 | I1s], [L, H], [Result | Results]) :-
-    extended_real(L),
-    itimes(I1, [L, H], Result),
-    itimes(I1s, [L, H], Results), !.
-
-% itimes disgiunti stessa lunghezza
-itimes([I1 | I1s], [I2 | I2s], [Result | Results]) :-
-    itimes(I1, I2, Result),
-    itimes(I1s, I2s, Results), !.
+itimes(I1s, I2s, Results) :-
+    findall(R, 
+        (member(I1, I1s), member(I2, I2s), itimes(I1, I2, R)), Results).
 
 
 /* The predicate idiv/2 is true if X is an instantiated non empty interval 
@@ -920,8 +886,6 @@ idiv([A, B], [C, 0], [Result1, Result2]) :-
     !,
     Result1 = neg_infinity,
     Result2 = pos_infinity.
-
-
 
 % gestione Id = M -> c<0 d>0
 
@@ -1103,21 +1067,8 @@ idiv([], _, []):- !.
 idiv(_, [], []):- !.
 
 % caso ricorsivo
-idiv([L, H], [I2 | I2s], [Result | Results]) :-
-    extended_real(L),
-    idiv([L, H], I2, Result),
-    idiv([L, H], I2s, Results), !.
+idiv(I1s, I2s, Results) :-
+    findall(R, 
+        (member(I1, I1s), member(I2, I2s), idiv(I1, I2, R)), Results).
 
-idiv([I1 | I1s], [L, H], [Result | Results]) :-
-    extended_real(L),
-    idiv(I1, [L, H], Result),
-    idiv(I1s, [L, H], Results), !.
-
-% idiv disgiunti stessa lunghezza
-idiv([I1 | I1s], [I2 | I2s], [Result | Results]) :-
-    idiv(I1, I2, Result),
-    idiv(I1s, I2s, Results), !.
-
-
-% idiv(_, _ , _) :- !, fail.
 %%%% end of file -- intar.pl --

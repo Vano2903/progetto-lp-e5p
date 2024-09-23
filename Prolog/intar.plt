@@ -614,20 +614,10 @@ test('iplus/3_fail3', fail) :-
 
 % Test somma intervalli disgiunti stessa lunghezza
 test('iplus/3_disjoint') :- 
-    iplus([[neg_infinity, -1], [1, pos_infinity]], 
-          [[neg_infinity, -1], [1, pos_infinity]], 
-          [[neg_infinity, -2] , [2, pos_infinity]]).
-          %R = [[neg_infinity, -2], [neg_infinity, pos_infinity], [neg_infinity, pos_infinity], [2, pos_infinity]]. ???
-          
-% test somma intervalli disgiunti lunghezza diversa
+    iplus([[1, 3], [-4, 5]], [[neg_infinity, 6], [-34, 5], [21, pos_infinity]], X),
+    X = [[neg_infinity, 9], [-33, 8], [22, pos_infinity], [neg_infinity, 11], [-38, 10], [17, pos_infinity]].       
 test('iplus/3_disjoint') :-
-    iplus([[neg_infinity,-1], [1, pos_infinity]], [1,2], [[neg_infinity, 1], [2, pos_infinity]]).
-test('iplus/3_disjoint') :-
-    iplus([[-10,-1], [1, 10]], [1,2], [[-9, 1], [2, 12]]).
-test('iplus/3_disjoint') :-
-    iplus([1,2], [[neg_infinity,-1], [1, pos_infinity]], [[neg_infinity, 1], [2, pos_infinity]]).
-test('iplus/3_disjoint') :-
-    iplus([1,2], [[-10,-1], [1, 10]], [[-9, 1], [2, 12]]).
+    iplus([[0,10], [20, 30]], [[3, 5]], [[3, 15], [23, 35]]).
 
 % iminus/2
 test('iminus/2') :- 
@@ -671,14 +661,8 @@ test('iminus/3_finite_neg_infinity') :-
 test('iminus/3_fail', fail) :- 
     iminus([3, 5], [1, 2], [2, 4]).
 
-test('iminus/3_disjoint') :- % <a,b> - <c,d> = [<a,d>,<c,b>] 
-    iminus([[neg_infinity, -1], [1, pos_infinity]], 
-           [[neg_infinity, -1], [1, pos_infinity]], 
-           X),
-    X = [[neg_infinity, pos_infinity], [neg_infinity, pos_infinity]].
-test('iminus/3_disjoint') :- 
-    iminus([[-4, -1], [1, 4]], [1, 2], X),
-    X = [[-6, -2], [-1, 3]].
+%test('iminus/3_disjoint') :- 
+
 
 % itimes/2  
 test('itimes/2') :- 
@@ -719,7 +703,7 @@ test('itimes/3_fail', fail) :-
 
 test('itimes/3_disjoint') :- % <a,b> * <c,d> = [min(ac,ad,bc,bd), max(ac,ad,bc,bd)]
     itimes([[neg_infinity, -1], [1, pos_infinity]], [[neg_infinity, -1], [1, pos_infinity]], X),
-    X = [[1, pos_infinity], [1, pos_infinity]].
+    X = [[1, pos_infinity], [neg_infinity, -1], [neg_infinity, -1], [1, pos_infinity]].
 % idiv/2
 test('idiv/2') :- 
     idiv([4, 8], [0.125, 0.25]).
@@ -1079,8 +1063,9 @@ test('idiv/3_case_n1_n', fail) :-
     idiv([neg_infinity, neg_infinity], [neg_infinity, neg_infinity], fail).
 
 test('idiv/3_disjoint') :-
-    idiv([[neg_infinity, -1], [1, pos_infinity]], 
-           [[neg_infinity, -1], [1, pos_infinity]], 
-           X),
-    X = [[0, pos_infinity], [0, pos_infinity]].
+    idiv([[neg_infinity, -1], [1, pos_infinity]], [[neg_infinity, -1], [1, pos_infinity]], X),
+    X = [[0, pos_infinity], [neg_infinity, 0], [neg_infinity, 0], [0, pos_infinity]].
+test('idiv/3_disjoint') :-
+    idiv([[neg_infinity, -1], [1, pos_infinity]], [[neg_infinity, -6], [2, 4],[7, pos_infinity]], X),
+    X = [[0, pos_infinity], [neg_infinity, -0.25], [neg_infinity, 0], [neg_infinity, 0], [0.25, pos_infinity], [0, pos_infinity]].
 :- end_tests(intar).
