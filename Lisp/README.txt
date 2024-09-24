@@ -43,7 +43,7 @@ siccome 0 non fa parte dell'intervallo
 
 ### Funzioni ausiliarie
 
-Non richieste ma utili abbiamo creato:
+Funzioni non richieste ma le abbiamo ritenute utili:
 
 ##### interval-to-string
 
