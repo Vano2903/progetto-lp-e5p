@@ -551,30 +551,33 @@ icontains([L1, H1], [L2, H2]) :-
 /* The predicate ioverlap succeeds if the two intervals I1 and I2 
 “overlap”. The predicate fails if either I1 or I2 is not an interval.
 */
-ioverlap(I1, I2) :- 
-    icontains(I1, I2), !.
+ioverlap([], _) :- 
+    !, fail.
 
-% gestione intervalli disgiunti
-ioverlap([I | _], X) :-
-    ioverlap(I, X), !.
-
-ioverlap([I | Is], X) :- 
+ioverlap(I, []) :- 
     is_interval(I),
-    ioverlap(Is, X), !.
+    !.
 
-ioverlap(I1, [I2]) :- 
-    ioverlap(I1, I2), !.
+ioverlap(X, _) :-
+    extended_real(X),
+    !, fail.
 
-ioverlap(I1, [I2 | I2s]) :- 
-    is_interval(I1),
-    is_interval(I2),
-    ioverlap(I1, I2),
-    ioverlap(I1, I2s), !.
+ioverlap(_, X) :- 
+    var(X), 
+    !, fail.
+% gestione intervalli disgiunti
+ioverlap(I1s, I2s):-
+    is_interval(I1s),
+    is_interval(I2s),
+    findall(true, 
+        (member(I1, I1s), member(I2, I2s), ioverlap(I1, I2)), Result),
+    Result \= [],
+    !.
 
 ioverlap([L1, H1], [L2, H2]) :- 
     is_interval([L1, H1]),
     is_interval([L2, H2]),
-    er_min(L1, H2, L1),
+    er_min(L1, H2, L1),   %[2, 4] [3, 5] -----[2, 4], [1, 3]
     er_max(H1, L2, H1).
 
 % Interval Arithmetic Predicates. 
