@@ -625,20 +625,20 @@ iplus([L1, H1], [L2, H2], [Result1, Result2]) :- % somma intervalli
 
 iplus(X, [L2, H2], [Result1, Result2]) :- % somma reale intervallo
     interval(X, SI),
-    iplus(SI, [L2, H2], [Result1, Result2]).
+    iplus(SI, [L2, H2], [Result1, Result2]), !.
 
 iplus([L1, H1], Y, [Result1, Result2]) :-  
     interval(Y, SI),
-    iplus([L1, H1], SI, [Result1, Result2]).
+    iplus([L1, H1], SI, [Result1, Result2]), !.
 
 iplus(X, Y, Result) :-  % somma reale reale
     interval(X, SI1),
     interval(Y, SI2),
-    iplus(SI1, SI2, Result).
+    iplus(SI1, SI2, Result), !.
 
 % caso base
-iplus([], _, []):- !.
-iplus(_, [], []):- !.
+iplus([], _, _):- !, fail.
+iplus(_, [], _):- !, fail.
 
 % iplus disgiunti 
 iplus(I1s, I2s, Results) :-
@@ -687,22 +687,22 @@ iminus([L1, H1], [L2, H2], [Result1, Result2]) :- % intervalli
 % X or Y extended real
 iminus(X, [L2, H2], [Result1, Result2]) :- 
     interval(X, SI),
-    iminus(SI, [L2, H2], [Result1, Result2]).
+    iminus(SI, [L2, H2], [Result1, Result2]), !.
 
 iminus([L1, H1], Y, [Result1, Result2]) :- 
     interval(Y, SI),
-    iminus([L1, H1], SI, [Result1, Result2]).
+    iminus([L1, H1], SI, [Result1, Result2]), !.
 
 % X and Y extended real
 iminus(X, Y, Result) :- 
     interval(X, SI1),
     interval(Y, SI2),
-    iminus(SI1, SI2, Result).
+    iminus(SI1, SI2, Result), !.
 
 % iminus disgiunto e intervallo
 % caso base
-iminus([], _, []):- !.
-iminus(_, [], []):- !.
+iminus([], _, _):- !, fail.
+iminus(_, [], _):- !, fail.
 
 % caso ricorsivo
 iminus(I1s, I2s, Results) :-
@@ -756,22 +756,22 @@ itimes([L1, H1], [L2, H2], [Result1, Result2]) :-
 % X or Y extended real
 itimes(X, [L2, H2], [Result1, Result2]) :- 
     interval(X, SI),
-    itimes(SI, [L2, H2], [Result1, Result2]).
+    itimes(SI, [L2, H2], [Result1, Result2]), !.
 
 itimes([L1, H1], Y, [Result1, Result2]) :- 
     interval(Y, SI),
-    itimes([L1, H1], SI, [Result1, Result2]).
+    itimes([L1, H1], SI, [Result1, Result2]), !.
 
 % X and Y extended real
 itimes(X, Y, Result) :- 
     interval(X, SI1),
     interval(Y, SI2),
-    itimes(SI1, SI2, Result).
+    itimes(SI1, SI2, Result), !.
 
 % itimes disgiunto e intervallo
 % caso base
-itimes([], _, []):- !.
-itimes(_, [], []):- !.
+itimes([], _, _):- !, fail.
+itimes(_, [], _):- !, fail.
 
 itimes(I1s, I2s, Results) :-
     findall(R, 
@@ -1071,8 +1071,8 @@ idiv(X, Y, Result) :-
 
 % idiv disgiunto e intervallo
 % caso base
-idiv([], _, []):- !.
-idiv(_, [], []):- !.
+idiv([], _, _):- !, fail.
+idiv(_, [], _):- !, fail.
 
 % caso ricorsivo
 idiv(I1s, I2s, Results) :-
