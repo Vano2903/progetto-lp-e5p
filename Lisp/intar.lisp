@@ -598,7 +598,7 @@
         ((eq c2-class 'p1)
           (interval 0 (/e b c)))
         ((eq c2-class 'm)
-          (whole))
+          (whole-interval))
         ((eq c2-class 'n0)
           (interval +neg-infinity+ 0))
         ((eq c2-class 'n1)
@@ -624,13 +624,13 @@
      ((eq c1-class 'm)
        (cond
         ((eq c2-class 'p0)
-          (whole))
+          (whole-interval))
         ((eq c2-class 'p1)
           (interval (/e a c) (/e b c)))
         ((eq c2-class 'm)
-          (whole))
+          (whole-interval))
         ((eq c2-class 'n0)
-          (whole))
+          (whole-interval))
         ((eq c2-class 'n1)
           (interval (/e b c) (/e a d)))))
      ((eq c1-class 'n0)
@@ -640,7 +640,7 @@
         ((eq c2-class 'p1)
           (interval (/e a c) 0))
         ((eq c2-class 'm)
-          (whole))
+          (whole-interval))
         ((eq c2-class 'n0)
           (interval 0 +pos-infinity+))
         ((eq c2-class 'n1)
@@ -749,9 +749,9 @@
      (empty-interval))
    (T (extended-interval nil (cons-interval l h)))))
 
-; returns the whole set of extended reals
+; returns the whole-interval set of extended reals
 ; so the interval from -infinity to +infinity
-(defun whole ()
+(defun whole-interval ()
   (interval +neg-infinity+ +pos-infinity+))
 
 ; checks if i is an interval
