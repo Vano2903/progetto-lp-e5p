@@ -14,8 +14,25 @@
 
 (defconstant +empty-interval+ () "Empty interval")
 
-; (defun is-zero-in-interval (i)
-;   (and (<= (inf i) 0) (>= (sup i) 0)))
+;!===== auxiliary functions =====!
+; returns the concatenation of two lists
+(defun concat-lists (l1 l2)
+  (if (null l1)
+      l2
+      (cons
+        (car l1)
+        (concat-lists (cdr l1) l2))))
+
+; ! this function might not be needed
+; an implementation of reverse just because im not sure
+; if i can use reverse or not
+(defun rev (l)
+  (cond
+   ((null l)
+     '())
+   (T
+     (append (rev (cdr l)) (list (car l))))))
+
 ;!===== validation functions =====!
 ; checks if x is a real number
 ; if not returns an error message
@@ -61,6 +78,21 @@
                (eq x +empty-interval+)))
          i))))
 
+; checks if i is a single interval
+; a single interval is not a disjoint interval
+; TODO: what should happen with exclusion points
+(defun is-single-interval (i)
+  (and (is-interval i)
+       (eq (length (get-interval-list i)) 1)
+       (is-cons-interval
+         (car (get-interval-list i)))))
+
+; checks if a cons interval a is contained in b
+(defun is-cons-interval-contained (a b)
+  (and (or (extended-real-gt (car b) (car a))
+           (extended-real-eq (car b) (car a)))
+       (or (extended-real-gt (cdr a) (cdr b))
+           (extended-real-eq (cdr a) (cdr b)))))
 ;!===== extended reals =====!
 ;!======= extended reals definitions
 
@@ -321,15 +353,6 @@
           ;no overlap
           nil))))
 
-; ! this function might not be needed
-; an implementation of reverse just because im not sure
-; if i can use reverse or not
-(defun rev (l)
-  (cond
-   ((null l)
-     '())
-   (T
-     (append (rev (cdr l)) (list (car l))))))
 
 ; merges a list of cons intervals
 ; the output might not be in order
@@ -374,10 +397,6 @@
            (get-exclusion-list interval)
          (sort-cons-intervals (merge-list-cons-intervals intervals)))))))
 
-; the function can handle a list of intervals
-; or a single interval (must be passed as a list anyway)
-; (defun sort-and-merge-intervals (intervals)
-;   ())
 
 ; checks if an interval is a well defined 
 ; cons interval
@@ -503,6 +522,156 @@
   (if (is-interval i)
       (cdr i)
       (error "The provided value ~A is not an interval" i)))
+
+;!======= operation tables on cons intervals
+; returns the sorted combination of the two lists
+; with duplicates removed
+; the lists must be containing extended reals values
+(defun sort-and-merge-exclusion-lists (l1 l2)
+  (remove-duplicates
+      (sort (concat-lists l1 l2)
+          (lambda (x y)
+            (not (extended-real-gt x y))))))
+
+; given two lists of cons intervals it applies the binary
+; operation passed as lambda and returns a list 
+; with the results
+(defun combine-cons-intervals-with-operation (x y operation)
+  (let ((combined-intervals
+         (mapcar (lambda (xi)
+                   (mapcar (lambda (yi)
+                             ; (format t "xi: ~a yi: ~a~%" xi yi)
+                             (funcall operation xi yi))
+                       y))
+             x)))
+    (concat-lists (car combined-intervals) (cadr combined-intervals))))
+
+; returns the sum of two cons intervals
+; the sum table can be found in the documentation
+(defun sum-cons-intervals (c1 c2)
+  (cons-interval
+    (+e (car c1) (car c2))
+    (+e (cdr c1) (cdr c2))))
+
+; returns the sub of two cons intervals
+; the sub table can be found in the documentation
+(defun sub-cons-intervals (c1 c2)
+  (cons-interval
+    (-e (car c1) (cdr c2))
+    (-e (cdr c1) (car c2))))
+
+; return multiplication of two cons intervals
+; the multiplication table can be found in the documentation
+(defun mul-cons-intervals (c1 c2)
+  (cons-interval
+    (extended-real-min
+        (*e (car c1) (car c2))
+      (*e (car c1) (cdr c2))
+      (*e (cdr c1) (car c2))
+      (*e (cdr c1) (cdr c2)))
+    (extended-real-max
+        (*e (car c1) (car c2))
+      (*e (car c1) (cdr c2))
+      (*e (cdr c1) (car c2))
+      (*e (cdr c1) (cdr c2)))))
+
+; return division of two cons intervals
+; it returns the empty interval if the division is not defined
+; the division table can be found in the documentation
+(defun div-cons-intervals (c1 c1-class c2 c2-class)
+  (let ((a (car c1))
+        (b (cdr c1))
+        (c (car c2))
+        (d (cdr c2)))
+    (cond
+     ((eq c2-class 'z)
+       (error "division by zero"))
+     ((eq c1-class 'z)
+       (interval 0))
+     ((eq c2 +empty-interval+)
+       (error "Division by empty interval"))
+     ((eq c1-class 'p0)
+       (cond
+        ((eq c2-class 'p0)
+          (interval 0 +pos-infinity+))
+        ((eq c2-class 'p1)
+          (interval 0 (/e b c)))
+        ((eq c2-class 'm)
+          (whole))
+        ((eq c2-class 'n0)
+          (interval +neg-infinity+ 0))
+        ((eq c2-class 'n1)
+          (interval (/e b d) 0))))
+     ((eq c1-class 'p1)
+       (cond
+        ((eq c2-class 'p0)
+          (extended-interval '(0)
+            (cons-interval (/e a d) +pos-infinity+)))
+        ((eq c2-class 'p1)
+          (extended-interval '(0)
+            (cons-interval (/e a d) (/e b c))))
+        ((eq c2-class 'm)
+          (extended-interval '(0)
+            (cons-interval +neg-infinity+ (/e a c))
+            (cons-interval (/e a d) +pos-infinity+)))
+        ((eq c2-class 'n0)
+          (extended-interval '(0)
+            (cons-interval +neg-infinity+ (/e a c))))
+        ((eq c2-class 'n1)
+          (extended-interval '(0)
+            (cons-interval (/e b d) (/e a c))))))
+     ((eq c1-class 'm)
+       (cond
+        ((eq c2-class 'p0)
+          (whole))
+        ((eq c2-class 'p1)
+          (interval (/e a c) (/e b c)))
+        ((eq c2-class 'm)
+          (whole))
+        ((eq c2-class 'n0)
+          (whole))
+        ((eq c2-class 'n1)
+          (interval (/e b c) (/e a d)))))
+     ((eq c1-class 'n0)
+       (cond
+        ((eq c2-class 'p0)
+          (interval +neg-infinity+ 0))
+        ((eq c2-class 'p1)
+          (interval (/e a c) 0))
+        ((eq c2-class 'm)
+          (whole))
+        ((eq c2-class 'n0)
+          (interval 0 +pos-infinity+))
+        ((eq c2-class 'n1)
+          (interval 0 (/e a d)))))
+
+     ((eq c1-class 'n1)
+       (cond
+        ((eq c2-class 'p0)
+          (extended-interval '(0)
+            (cons-interval +neg-infinity+ (/e b d))))
+        ((eq c2-class 'p1)
+          (extended-interval '(0)
+            (cons-interval (/e a c) (/e b d))))
+        ((eq c2-class 'm)
+          (extended-interval '(0)
+            (cons-interval +neg-infinity+ (/e b d))
+            (cons-interval (/e b c) +pos-infinity+)))
+        ((eq c2-class 'n0)
+          (extended-interval '(0)
+            (cons-interval (/e c c) +neg-infinity+)))
+        ((eq c2-class 'n1)
+          (extended-interval '(0)
+            (cons-interval (/e b c) (/e a d)))))))))
+
+; merges a list of division cons intervals as 
+; they might generate a disjoint interval or 
+; exclusion points
+(defun merge-division-intervals-into-interval (lst)
+  (cons
+    (mapcar #'caar lst)
+    (remove-duplicates (mapcar #'cadr lst))))
+
 ;!===== API FUNCTIONS =====!
 
 ; executes the sum of x and y if both are extended reals
@@ -603,15 +772,6 @@
           (is-valid-exclusion-list
             (cdr i))))))
 
-; checks if i is a single interval
-; a single interval is not a disjoint interval
-; TODO: what should happen with exclusion points
-(defun is-single-interval (i)
-  (and (is-interval i)
-       (eq (length (get-interval-list i)) 1)
-       (is-cons-interval
-         (car (get-interval-list i)))))
-
 ; checks if i is the empty interval
 ; if the value i is not an interval it returns an error
 (defun is-empty (i)
@@ -657,9 +817,50 @@
    (T
      (cdar (last (car (sort-and-merge-interval i)))))))
 
-
+; contains checks if the interval i contains the value x
+; x can be an interval or an extended real
+; if x is an interval it checks if all the intervals in x
+; are contained in i
+; if x is an extended real it checks if x is contained in i
+; it will also check for exclusion points in case x is an extended real
+; if x is not an interval or an extended real it returns an error
+; if i is not an interval it returns an error
 (defun contains (i x)
-  ())
+  (cond
+   ((or (not (is-interval i)) (is-empty i))
+     (error "The provided value ~A is not a valid interval" i))
+   ((is-interval x)
+     (let ((x-cons-intervals
+            (get-interval-list (sort-and-merge-interval x)))
+           (i-cons-intervals
+            (get-interval-list (sort-and-merge-interval i))))
+       (every (lambda (x-interval)
+                (some (lambda (i-interval)
+                        (or (is-cons-interval-contained
+                              x-interval
+                              i-interval)
+                            (is-cons-interval-contained
+                              i-interval
+                              x-interval)))
+                    i-cons-intervals))
+           x-cons-intervals)))
+   ((is-extended-real x)
+     (let ((i-cons-intervals
+            (get-interval-list (sort-and-merge-interval i)))
+           (exclusion-points (sort-and-merge-exclusion-lists
+                              (get-exclusion-list i) nil)))
+       (some (lambda (i-interval)
+               (and (or (is-cons-interval-contained
+                          (cons x x)
+                          i-interval)
+                        (is-cons-interval-contained
+                          i-interval
+                          (cons x x)))
+                    (not (member x exclusion-points))))
+           i-cons-intervals)))
+   (T
+     (error "The provided value ~A is not a valid value,
+          must be an interval or an extended real" x))))
 
 ; overlap checks if two intervals overlap
 ; if a disjoint interval is provided it checks
@@ -686,143 +887,6 @@
                i1-intervals)
            t)))))
 
-(defun concat-lists (l1 l2)
-  (if (null l1)
-      l2
-      (cons
-        (car l1)
-        (concat-lists (cdr l1) l2))))
-
-(defun merge-and-sort-exclusion-lists (l1 l2)
-  (remove-duplicates
-      (sort (concat-lists l1 l2)
-          (lambda (x y)
-            (not (extended-real-gt x y))))))
-
-(defun combine-cons-intervals-with-operation (x y operation)
-  (let ((combined-intervals
-         (mapcar (lambda (xi)
-                   (mapcar (lambda (yi)
-                             ; (format t "xi: ~a yi: ~a~%" xi yi)
-                             (funcall operation xi yi))
-                       y))
-             x)))
-    (concat-lists (car combined-intervals) (cadr combined-intervals))))
-
-(defun sum-cons-intervals (c1 c2)
-  (cons-interval
-    (+e (car c1) (car c2))
-    (+e (cdr c1) (cdr c2))))
-
-(defun sub-cons-intervals (c1 c2)
-  (cons-interval
-    (-e (car c1) (cdr c2))
-    (-e (cdr c1) (car c2))))
-
-(defun mul-cons-intervals (c1 c2)
-  (cons-interval
-    (extended-real-min
-        (*e (car c1) (car c2))
-      (*e (car c1) (cdr c2))
-      (*e (cdr c1) (car c2))
-      (*e (cdr c1) (cdr c2)))
-    (extended-real-max
-        (*e (car c1) (car c2))
-      (*e (car c1) (cdr c2))
-      (*e (cdr c1) (car c2))
-      (*e (cdr c1) (cdr c2)))))
-
-(defun div-cons-intervals (c1 c1-class c2 c2-class)
-  (let ((a (car c1))
-        (b (cdr c1))
-        (c (car c2))
-        (d (cdr c2)))
-    (cond
-     ((eq c2-class 'z)
-       (error "division by zero"))
-     ((eq c1-class 'z)
-       (interval 0))
-     ((eq c2 +empty-interval+)
-       (error "Division by empty interval"))
-     ((eq c1-class 'p0)
-       (cond
-        ((eq c2-class 'p0)
-          (interval 0 +pos-infinity+))
-        ((eq c2-class 'p1)
-          (interval 0 (/e b c)))
-        ((eq c2-class 'm)
-          (whole))
-        ((eq c2-class 'n0)
-          (interval +neg-infinity+ 0))
-        ((eq c2-class 'n1)
-          (interval (/e b d) 0))))
-     ((eq c1-class 'p1)
-       (cond
-        ((eq c2-class 'p0)
-          (extended-interval '(0)
-            (cons-interval (/e a d) +pos-infinity+)))
-        ((eq c2-class 'p1)
-          (extended-interval '(0)
-            (cons-interval (/e a d) (/e b c))))
-        ((eq c2-class 'm)
-          (extended-interval '(0)
-            (cons-interval +neg-infinity+ (/e a c))
-            (cons-interval (/e a d) +pos-infinity+)))
-        ((eq c2-class 'n0)
-          (extended-interval '(0)
-            (cons-interval +neg-infinity+ (/e a c))))
-        ((eq c2-class 'n1)
-          (extended-interval '(0)
-            (cons-interval (/e b d) (/e a c))))))
-     ((eq c1-class 'm)
-       (cond
-        ((eq c2-class 'p0)
-          (whole))
-        ((eq c2-class 'p1)
-          (interval (/e a c) (/e b c)))
-        ((eq c2-class 'm)
-          (whole))
-        ((eq c2-class 'n0)
-          (whole))
-        ((eq c2-class 'n1)
-          (interval (/e b c) (/e a d)))))
-     ((eq c1-class 'n0)
-       (cond
-        ((eq c2-class 'p0)
-          (interval +neg-infinity+ 0))
-        ((eq c2-class 'p1)
-          (interval (/e a c) 0))
-        ((eq c2-class 'm)
-          (whole))
-        ((eq c2-class 'n0)
-          (interval 0 +pos-infinity+))
-        ((eq c2-class 'n1)
-          (interval 0 (/e a d)))))
-
-     ((eq c1-class 'n1)
-       (cond
-        ((eq c2-class 'p0)
-          (extended-interval '(0)
-            (cons-interval +neg-infinity+ (/e b d))))
-        ((eq c2-class 'p1)
-          (extended-interval '(0)
-            (cons-interval (/e a c) (/e b d))))
-        ((eq c2-class 'm)
-          (extended-interval '(0)
-            (cons-interval +neg-infinity+ (/e b d))
-            (cons-interval (/e b c) +pos-infinity+)))
-        ((eq c2-class 'n0)
-          (extended-interval '(0)
-            (cons-interval (/e c c) +neg-infinity+)))
-        ((eq c2-class 'n1)
-          (extended-interval '(0)
-            (cons-interval (/e b c) (/e a d)))))))))
-
-(defun merge-division-intervals-into-interval (lst)
-  (cons
-    (mapcar #'caar lst)
-    (remove-duplicates (mapcar #'cadr lst))))
-
 ; i+ returns the sum of the intervals x and y
 ; if x or y are not intervals or extended reals it returns an error
 ; if x or y are extended reals they will be considered as singletons
@@ -845,9 +909,9 @@
      (t
        (sort-interval
          (apply #'extended-interval
-             (merge-and-sort-exclusion-lists
-               (get-exclusion-list xi)
-               (get-exclusion-list yi))
+             (sort-and-merge-exclusion-lists
+              (get-exclusion-list xi)
+              (get-exclusion-list yi))
            (combine-cons-intervals-with-operation
              (get-interval-list xi)
              (get-interval-list yi)
@@ -872,9 +936,9 @@
      (T
        (sort-interval
          (apply #'extended-interval
-             (merge-and-sort-exclusion-lists
-               (get-exclusion-list xi)
-               (get-exclusion-list yi))
+             (sort-and-merge-exclusion-lists
+              (get-exclusion-list xi)
+              (get-exclusion-list yi))
            (combine-cons-intervals-with-operation
              (get-interval-list xi)
              (get-interval-list yi)
@@ -902,9 +966,9 @@
      (t
        (sort-interval
          (apply #'extended-interval
-             (merge-and-sort-exclusion-lists
-               (get-exclusion-list xi)
-               (get-exclusion-list yi))
+             (sort-and-merge-exclusion-lists
+              (get-exclusion-list xi)
+              (get-exclusion-list yi))
            (combine-cons-intervals-with-operation
              (get-interval-list xi)
              (get-interval-list yi)
@@ -946,11 +1010,11 @@
                       (div-cons-intervals c1 c1-class c2 c2-class)))))))
          (sort-interval
            (apply #'extended-interval
-               (merge-and-sort-exclusion-lists
-                 (merge-and-sort-exclusion-lists
-                   (get-exclusion-list xi)
-                   (get-exclusion-list yi))
-                 (cdr division-interval))
+               (sort-and-merge-exclusion-lists
+                (sort-and-merge-exclusion-lists
+                 (get-exclusion-list xi)
+                 (get-exclusion-list yi))
+                (cdr division-interval))
              (car division-interval))))))))
 
 ;!===== PRINT AND TO STRING FUNCTIONS =====!
