@@ -17,4 +17,18 @@ Le operazioni gestiscono
 - gestione variabili non instanziate durante l'esecuzione delle operazioni
 - gestione intervallo vuoto
 
+###Accortezze 
+Se le operazioni contengono i disgiunti bisogna rappresentare anche 
+l'intervallo singolo tra doppio [], altrimenti lo riconosce come reale.
+esempio:
+    iplus([[2, 2]], [[1, 4], [6, 7]], R).
+    R = [[3, 6], [8, 9]]
 
+    iplus([2], [[1, 4], [6, 7]], R).
+    R = [[3, 6], [8, 9]]
+
+    iplus([-1, 1], [[1, 4], [6, 7]], R). 
+    R = [[0, 3], [5, 6], [2, 5], [7, 8]].
+
+    iplus([[-1, -1], [1,  1]], [[1, 4], [6, 7]], R). 
+    R = [[0, 3], [5, 6], [2, 5], [7, 8]].
