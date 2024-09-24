@@ -570,7 +570,7 @@ ioverlap(I1s, I2s):-
     is_interval(I1s),
     is_interval(I2s),
     findall(true, 
-        (member(I1, I1s), member(I2, I2s), ioverlap(I1, I2)), Result),
+            (member(I1, I1s), member(I2, I2s), ioverlap(I1, I2)), Result),
     Result \= [],
     !.
 
@@ -643,8 +643,8 @@ iplus(_, [], []):- !.
 % iplus disgiunti 
 iplus(I1s, I2s, Results) :-
     findall(R, 
-        (member(I1, I1s), member(I2, I2s), iplus(I1, I2, R)), Results).
-    
+            (member(I1, I1s), member(I2, I2s), iplus(I1, I2, R)), Results).
+
 
 /* The predicate iminus/2 is true if X is an instantiated non empty 
 interval and R unifies with its reciprocal with respect to the summation
@@ -707,7 +707,7 @@ iminus(_, [], []):- !.
 % caso ricorsivo
 iminus(I1s, I2s, Results) :-
     findall(R, 
-        (member(I1, I1s), member(I2, I2s), iminus(I1, I2, R)), Results).
+            (member(I1, I1s), member(I2, I2s), iminus(I1, I2, R)), Results).
 
 
 % The predicate itimes/1 is true if ZI is a non empty interval.
@@ -775,7 +775,7 @@ itimes(_, [], []):- !.
 
 itimes(I1s, I2s, Results) :-
     findall(R, 
-        (member(I1, I1s), member(I2, I2s), itimes(I1, I2, R)), Results).
+            (member(I1, I1s), member(I2, I2s), itimes(I1, I2, R)), Results).
 
 
 /* The predicate idiv/2 is true if X is an instantiated non empty interval 
@@ -1077,6 +1077,6 @@ idiv(_, [], []):- !.
 % caso ricorsivo
 idiv(I1s, I2s, Results) :-
     findall(R, 
-        (member(I1, I1s), member(I2, I2s), idiv(I1, I2, R)), Results).
+            (member(I1, I1s), member(I2, I2s), idiv(I1, I2, R)), Results).
 
 %%%% end of file -- intar.pl --
