@@ -397,7 +397,7 @@
        (apply #'extended-interval
               (get-exclusion-list interval)
               (sort-cons-intervals (merge-list-cons-intervals intervals)
-                ))))))
+				   ))))))
 
 
 ;; checks if an interval is a well defined 
