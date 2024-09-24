@@ -95,12 +95,18 @@
 (assert (equal +neg-infinity+ (extended-real-min +neg-infinity+ +neg-infinity+)))
 (assert (equal +neg-infinity+ (extended-real-min +neg-infinity+ +pos-infinity+)))
 (assert (equal -1 (extended-real-min 1 2 3 -1)))
+(assert (equal -2 (extended-real-min 1 2 -2 3 -1)))
+(assert (equal 1 (extended-real-min 'a 'b 1 2)))
+(assert (not (extended-real-min 'a 'b 'c)))
 
 ;!======= asserts for max on extended reals
 (assert (equal +neg-infinity+ (extended-real-max +neg-infinity+)))
 (assert (equal +neg-infinity+ (extended-real-max +neg-infinity+ +neg-infinity+)))
 (assert (equal +pos-infinity+ (extended-real-max +neg-infinity+ +pos-infinity+)))
-(assert (equal 3 (extended-real-max 1 2 3 -1)))
+(assert (equal 4 (extended-real-max 1 2 -1 4)))
+(assert (equal +pos-infinity+ (extended-real-max 1 2 +pos-infinity+ 3 -1)))
+(assert (equal 2 (extended-real-max 'a 'b 1 2)))
+(assert (not (extended-real-max 'a 'b 'c)))
 
 ;!===== asserts on operations with extended reals
 ;!======= sum asserts
@@ -305,6 +311,27 @@
 (assert (equal 'm (classify-interval (interval -1 1))))
 (assert (equal 'm (classify-interval (whole))))
 
+;!===== asserts on merge cons intervals
+(assert (null (merge-cons-intervals (cons-interval 1 2) (cons-interval 3 4))))
+
+
+;!===== asserts on valid exclusion list
+(assert (is-valid-exclusion-list (list +neg-infinity+ -1 0 1 +pos-infinity+)))
+(assert (is-valid-exclusion-list ()))
+(assert (not (is-valid-exclusion-list 'a)))
+(assert (not (is-valid-exclusion-list (list 'a))))
+(assert (not (is-valid-exclusion-list (list 'a))))
+(assert (not (is-valid-exclusion-list (list nil))))
+
+;!===== asserts on valid interval list
+(assert (is-valid-interval-list (list (cons 0 1))))
+(assert (is-valid-interval-list (list (empty-interval))))
+(assert (is-valid-interval-list '()))
+(assert (is-valid-interval-list (list (cons +neg-infinity+ 0) (cons 1 2) (cons 3 4))))
+
+(assert (not (is-valid-exclusion-list 'a)))
+(assert (not (is-valid-exclusion-list (list (cons 3 2)))))
+(assert (not (is-valid-exclusion-list (list (cons 1 2) (cons 3 4) (cons 3 2)))))
 
 ;!=== ASSERTS OF API FUNCTIONS
 ;!===== asserts for empty-interval
@@ -410,4 +437,8 @@
 ; (assert (equal 0 (+e)))
 ; (assert (equal 0 (+e)))
 
+(assert (overlap))
+
+
 (print "All tests passed")
+
