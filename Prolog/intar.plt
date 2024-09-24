@@ -196,7 +196,7 @@ test('icontains/2_valid_disjoint') :-
 test('icontains/2_valid_disjoint') :-
     icontains([[-10,-2], [4,10], [11, 30]], [[-10,-2], [5,10]]).    
 test('icontains/2_valid_disjoint') :-
-    icontains([[1,4], [5 8]], [[2, 3], [6, 7]]).                  
+    icontains([[1,4], [5, 8]], [[2, 3], [6, 7]]).                  
 test('icontains/2_invalid', fail) :- 
     icontains([5, 10], 11).
 test('icontains/2_invalid', fail) :- 

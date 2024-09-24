@@ -503,6 +503,10 @@ X can be a number or another interval.
 icontains([], _) :- 
     !, fail.
 
+icontains(I, []) :- 
+    is_interval(I),
+    !.
+
 icontains(X, _) :-
     extended_real(X),
     !, fail.
@@ -547,9 +551,10 @@ icontains([L1, H1], [L2, H2]) :-
 /* The predicate ioverlap succeeds if the two intervals I1 and I2 
 “overlap”. The predicate fails if either I1 or I2 is not an interval.
 */
-ioverlap(I1, I2) :- % gestione intervalli disgiunti.
+ioverlap(I1, I2) :- 
     icontains(I1, I2), !.
 
+% gestione intervalli disgiunti
 ioverlap([I | _], X) :-
     ioverlap(I, X), !.
 
