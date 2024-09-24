@@ -14,7 +14,7 @@
 
 (defconstant +empty-interval+ () "Empty interval")
 
-;!===== auxiliary functions =====!
+*;!===== auxiliary functions =====!
 ; returns the concatenation of two lists
 (defun concat-lists (l1 l2)
   (if (null l1)
@@ -525,13 +525,14 @@
 
 ;!======= operation tables on cons intervals
 ; returns the sorted combination of the two lists
-; with duplicates removed
+; and removes duplicates and possible nils
 ; the lists must be containing extended reals values
 (defun sort-and-merge-exclusion-lists (l1 l2)
-  (remove-duplicates
-      (sort (concat-lists l1 l2)
-          (lambda (x y)
-            (not (extended-real-gt x y))))))
+  (remove nil
+      (remove-duplicates
+          (sort (concat-lists l1 l2)
+              (lambda (x y)
+                (not (extended-real-gt x y)))))))
 
 ; given two lists of cons intervals it applies the binary
 ; operation passed as lambda and returns a list 
@@ -540,11 +541,10 @@
   (let ((combined-intervals
          (mapcar (lambda (xi)
                    (mapcar (lambda (yi)
-                             ; (format t "xi: ~a yi: ~a~%" xi yi)
                              (funcall operation xi yi))
                        y))
              x)))
-    (concat-lists (car combined-intervals) (cadr combined-intervals))))
+    (mapcan #'identity combined-intervals)))
 
 ; returns the sum of two cons intervals
 ; the sum table can be found in the documentation
@@ -848,7 +848,7 @@
      (let ((i-cons-intervals
             (get-interval-list (sort-and-merge-interval i)))
            (exclusion-points (sort-and-merge-exclusion-lists
-                              (get-exclusion-list i) nil)))
+                               (get-exclusion-list i) nil)))
        (some (lambda (i-interval)
                (and (or (is-cons-interval-contained
                           (cons x x)
@@ -910,8 +910,8 @@
        (sort-interval
          (apply #'extended-interval
              (sort-and-merge-exclusion-lists
-              (get-exclusion-list xi)
-              (get-exclusion-list yi))
+               (get-exclusion-list xi)
+               (get-exclusion-list yi))
            (combine-cons-intervals-with-operation
              (get-interval-list xi)
              (get-interval-list yi)
@@ -937,8 +937,8 @@
        (sort-interval
          (apply #'extended-interval
              (sort-and-merge-exclusion-lists
-              (get-exclusion-list xi)
-              (get-exclusion-list yi))
+               (get-exclusion-list xi)
+               (get-exclusion-list yi))
            (combine-cons-intervals-with-operation
              (get-interval-list xi)
              (get-interval-list yi)
@@ -967,8 +967,8 @@
        (sort-interval
          (apply #'extended-interval
              (sort-and-merge-exclusion-lists
-              (get-exclusion-list xi)
-              (get-exclusion-list yi))
+               (get-exclusion-list xi)
+               (get-exclusion-list yi))
            (combine-cons-intervals-with-operation
              (get-interval-list xi)
              (get-interval-list yi)
@@ -1011,10 +1011,10 @@
          (sort-interval
            (apply #'extended-interval
                (sort-and-merge-exclusion-lists
-                (sort-and-merge-exclusion-lists
-                 (get-exclusion-list xi)
-                 (get-exclusion-list yi))
-                (cdr division-interval))
+                 (sort-and-merge-exclusion-lists
+                   (get-exclusion-list xi)
+                   (get-exclusion-list yi))
+                 (cdr division-interval))
              (car division-interval))))))))
 
 ;!===== PRINT AND TO STRING FUNCTIONS =====!
