@@ -34,10 +34,10 @@ che un valore x sia presente all'interno di un intervallo, tale funzione
 controlla eventuali punti di discontinuità dell'intervallo quindi, 
 ad esempio:
 (print-interval (extended-interval '(0) (cons-interval -1 1)))
- -> [-1, 1] ∖ {0}
+-> [-1, 1] ∖ {0}
 
 (contains (extended-interval '(0) (cons-interval -1 1)) 0)
- -> NIL
+-> NIL
 
 siccome 0 non fa parte dell'intervallo
 
