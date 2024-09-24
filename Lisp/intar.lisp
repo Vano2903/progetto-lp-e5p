@@ -6,7 +6,8 @@
 
 
 ;; Interval Arithmetic
-;; This file contains the implementation of the interval arithmetic operations
+;; This file contains the implementation 
+;; of the interval arithmetic operations
 
 (defconstant +neg-infinity+ 'neg-infinity "Negative infinity")
 
